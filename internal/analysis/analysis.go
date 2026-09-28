@@ -16,6 +16,7 @@ import (
 	"github.com/morethancoder/qtldr/internal/coverage"
 	"github.com/morethancoder/qtldr/internal/gitx"
 	"github.com/morethancoder/qtldr/internal/lang"
+	"github.com/morethancoder/qtldr/internal/lang/external"
 	"github.com/morethancoder/qtldr/internal/lang/golang"
 	"github.com/morethancoder/qtldr/internal/metrics"
 	"github.com/morethancoder/qtldr/internal/model"
@@ -76,6 +77,7 @@ func Run(ctx context.Context, opt Options) (Result, error) {
 		return Result{}, err
 	}
 	var res Result
+	addProviders(ctx, opt, &g, &res)
 	if err := opt.applyScope(g, &res); err != nil {
 		return Result{}, err
 	}
@@ -89,6 +91,7 @@ func Run(ctx context.Context, opt Options) (Result, error) {
 		PurityAllow:    allowIDs(g, opt.Config.Purity.Allow, &res),
 	}
 	addChurn(ctx, opt, &in, &res)
+	addFunctionChurn(ctx, opt, g, &in, &res)
 	if opt.Mutate {
 		if err := runMutation(ctx, opt, metrics.Compute(g, in), &res); err != nil {
 			return res, err
@@ -101,6 +104,46 @@ func Run(ctx context.Context, opt Options) (Result, error) {
 	res.Snapshot = snapshot(metrics.Compute(g, in), gitx.Info(ctx, opt.Root), opt.Now, cache.RanAt)
 	res.Snapshot.Runs.Mutation = mutatedAt
 	return res, store.WriteSnapshot(opt.Root, res.Snapshot)
+}
+
+// addProviders merges external language providers ([[providers]]). A
+// provider that fails or breaks the contract is shown as "not measured".
+func addProviders(ctx context.Context, opt Options, g *model.Graph, res *Result) {
+	parent := firstModule(*g)
+	for _, p := range opt.Config.Providers {
+		opt.progress("Running provider " + p.Name + "…")
+		add, problems, err := external.Scan(ctx, opt.Root, p, opt.Config.Project.Exclude, golang.MatchAny)
+		if err == nil && len(problems) == 0 {
+			problems = external.Merge(g, add, p.Name, parent)
+		}
+		if reasons := providerFailure(p.Name, err, problems); reasons != nil {
+			g.Nodes = append(g.Nodes, external.NotMeasured(p.Name, parent, reasons))
+			res.Warnings = append(res.Warnings, reasons[0])
+		}
+	}
+}
+
+func providerFailure(name string, err error, problems []external.Problem) []string {
+	if err != nil {
+		return []string{fmt.Sprintf("provider %s: %v; its language is not measured", name, err)}
+	}
+	if len(problems) == 0 {
+		return nil
+	}
+	reasons := []string{fmt.Sprintf("provider %s broke the contract (%d problems; run: qtldr provider test %s); its language is not measured", name, len(problems), name)}
+	for _, p := range problems {
+		reasons = append(reasons, p.String())
+	}
+	return reasons
+}
+
+func firstModule(g model.Graph) model.ID {
+	for _, n := range g.Nodes {
+		if n.Kind == model.KindModule {
+			return n.ID
+		}
+	}
+	return ""
 }
 
 // runMutation tests the requested packages; g carries CRAP so the riskiest
@@ -240,6 +283,25 @@ func addChurn(ctx context.Context, opt Options, in *metrics.Inputs, res *Result)
 	}
 }
 
+// addFunctionChurn adds per-function churn when [churn].scope is "function".
+func addFunctionChurn(ctx context.Context, opt Options, g model.Graph, in *metrics.Inputs, res *Result) {
+	if opt.Config.Churn.Scope != "function" || in.FileChurn == nil {
+		return
+	}
+	var spans []gitx.Span
+	for _, n := range g.Nodes {
+		if n.Kind == model.KindFunc {
+			spans = append(spans, gitx.Span{ID: n.ID, File: n.File, From: n.Line, To: n.EndLine})
+		}
+	}
+	fc, err := gitx.ReadFunctionChurn(ctx, opt.Root, opt.Config.Churn.WindowMonths, spans)
+	if err != nil {
+		res.Warnings = append(res.Warnings, "function churn not measured, using file churn: "+err.Error())
+		return
+	}
+	in.FunctionChurn = fc
+}
+
 // allowIDs resolves [purity].allow entries (full IDs or unique suffixes).
 func allowIDs(g model.Graph, allow []string, res *Result) []model.ID {
 	var ids []model.ID
@@ -259,10 +321,17 @@ func snapshot(g model.Graph, git *model.GitInfo, at time.Time, coverageAt *time.
 		Schema: model.SchemaVersion, ToolVersion: ToolVersion, Generated: at, Git: git,
 		Runs: model.Runs{Structure: &at, Coverage: coverageAt}, Graph: g,
 	}
+	var mods []string
 	for _, n := range g.Nodes {
 		if n.Kind == model.KindModule {
-			s.Module = string(n.ID)
+			mods = append(mods, string(n.ID))
 		}
+	}
+	switch {
+	case len(mods) == 1:
+		s.Module = mods[0]
+	case len(mods) > 1:
+		s.Module = "go.work: " + strings.Join(mods, ", ")
 	}
 	return s
 }

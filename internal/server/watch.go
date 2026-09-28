@@ -31,6 +31,7 @@ func (s *Server) Watch(ctx context.Context) error {
 			s.logf("watch %s: %v", dir, err)
 		}
 	}
+	s.watchOnce.Do(func() { close(s.watching) })
 	return s.watchLoop(ctx, w.Events, w.Errors, w.Add)
 }
 
@@ -42,16 +43,29 @@ func (s *Server) watchLoop(ctx context.Context, events <-chan fsnotify.Event, er
 		case <-ctx.Done():
 			return nil
 		case ev := <-events:
-			if relevant(ev, add) {
-				timer = time.After(debounce)
-			}
+			timer = onEvent(ev, add, timer)
 		case err := <-errs:
 			s.logf("watch: %v", err)
 		case <-timer:
-			timer = nil
-			s.rescan(ctx)
+			timer = s.onTimer(ctx)
 		}
 	}
+}
+
+// onEvent (re)starts the debounce timer for a relevant event.
+func onEvent(ev fsnotify.Event, add func(string) error, timer <-chan time.Time) <-chan time.Time {
+	if relevant(ev, add) {
+		return time.After(debounce)
+	}
+	return timer
+}
+
+// onTimer re-scans, or re-arms the timer while another analysis runs.
+func (s *Server) onTimer(ctx context.Context) <-chan time.Time {
+	if s.rescan(ctx) {
+		return nil
+	}
+	return time.After(debounce)
 }
 
 func (s *Server) watchDirs() []string {
@@ -80,17 +94,18 @@ func isNewDir(path string) bool {
 	return err == nil && st.IsDir() && !strings.HasPrefix(filepath.Base(path), ".")
 }
 
-// rescan runs a structure-only analysis unless a refresh is running (that
-// one publishes its own snapshot).
-func (s *Server) rescan(ctx context.Context) {
+// rescan runs a structure-only analysis. It reports false, doing nothing,
+// while another analysis runs, so the caller retries and no change is lost.
+func (s *Server) rescan(ctx context.Context) bool {
 	if !s.busy.CompareAndSwap(false, true) {
-		return
+		return false
 	}
 	defer s.busy.Store(false)
 	res, err := s.opt.Run(ctx, analysis.Options{Root: s.opt.Root, Config: s.config(), Now: s.opt.Now()})
 	if err != nil {
 		s.toast("Re-scan failed: %v", err)
-		return
+		return true
 	}
 	s.setSnapshot(res.Snapshot)
+	return true
 }

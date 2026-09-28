@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -121,7 +123,7 @@ func TestShowWithoutSnapshot(t *testing.T) {
 
 func TestNoModule(t *testing.T) {
 	r := runCLI(t, allTools, "-C", t.TempDir(), "analyze")
-	if r.code != 2 || !strings.Contains(r.stderr, "no go.mod") {
+	if r.code != 2 || !strings.Contains(r.stderr, "no go.mod or go.work") {
 		t.Fatalf("%+v", r)
 	}
 }
@@ -299,5 +301,62 @@ func TestPackageLine(t *testing.T) {
 func TestMCPUsage(t *testing.T) {
 	if r := runCLI(t, allTools, "-C", tempModule(t), "mcp", "extra"); r.code != 2 || !strings.Contains(r.stderr, "mcp takes no arguments") {
 		t.Fatalf("%+v", r)
+	}
+}
+
+func TestProviders(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds the example provider")
+	}
+	dir := tempModule(t)
+	bin := filepath.Join(t.TempDir(), "example-provider")
+	src, _ := filepath.Abs(filepath.Join("..", "..", "testdata", "provider", "example"))
+	if out, err := exec.Command("go", "build", "-o", bin, src).CombinedOutput(); err != nil {
+		t.Fatalf("%v %s", err, out)
+	}
+	_ = os.MkdirAll(filepath.Join(dir, "notes"), 0o755)
+	_ = os.WriteFile(filepath.Join(dir, "notes", "readme.txt"), []byte("hi"), 0o644)
+	toml := "[[providers]]\nname = \"txt\"\ncommand = \"" + bin + "\"\nextensions = [\".txt\"]\n\n" +
+		"[[providers]]\nname = \"broken\"\ncommand = \"sh -c 'echo nope'\"\nextensions = [\".txt\"]\n"
+	if err := os.WriteFile(filepath.Join(dir, ".qtldr.toml"), []byte(toml), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "provider", "test", "txt"); r.code != 0 || !strings.Contains(r.stdout, "follows the contract: 2 nodes") {
+		t.Errorf("configured: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "provider", "test", "broken"); r.code != 1 || !strings.Contains(r.stdout, "$: not a JSON object") {
+		t.Errorf("broken: %+v", r)
+	}
+	r := runCLI(t, allTools, "-C", dir, "provider", "test", "--ext", ".txt", "--", "sh", "-c", `echo '{"nodes": [{"id": "x", "kind": "class", "name": "x"}]}'`)
+	if r.code != 1 || !strings.Contains(r.stdout, "$.nodes[0].kind") {
+		t.Errorf("command: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "provider", "test", "nope"); r.code != 2 {
+		t.Errorf("unknown: %+v", r)
+	}
+	r = runCLI(t, allTools, "-C", dir, "analyze")
+	if r.code != 0 || !strings.Contains(r.stderr, "provider broken") {
+		t.Fatalf("analyze: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "show", "example:notes.readme"); !strings.Contains(r.stdout, "readme.txt") {
+		t.Errorf("merged node: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "show", "provider:broken"); !strings.Contains(r.stdout, "broken (not measured)") {
+		t.Errorf("not measured node: %+v", r)
+	}
+}
+
+func TestVersion(t *testing.T) {
+	if r := runCLI(t, allTools, "version"); r.code != 0 || !strings.HasPrefix(r.stdout, "qtldr ") {
+		t.Fatalf("%+v", r)
+	}
+	if got := version(&debug.BuildInfo{Main: debug.Module{Version: "v0.2.0"}}, true); got != "v0.2.0" {
+		t.Errorf("tagged: %s", got)
+	}
+	if got := version(&debug.BuildInfo{Main: debug.Module{Version: "(devel)"}}, true); !strings.HasSuffix(got, "-dev") {
+		t.Errorf("devel: %s", got)
+	}
+	if r := runCLI(t, allTools, "--json", "version"); !strings.Contains(r.stdout, `"version"`) {
+		t.Errorf("json: %+v", r)
 	}
 }

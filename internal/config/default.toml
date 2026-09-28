@@ -6,6 +6,7 @@ exclude = ["**/*_mock.go", "**/mocks/**"]  # globs on file paths; generated file
 base_ref = "main"                          # default ref for the "changed" scope
 external_modules = "collapsed"             # collapsed | hidden
 show_stdlib = false
+calls = "interfaces"                       # interfaces (fast) | vta (resolves dynamic calls to implementations; slower)
 
 [coverage]
 command = "go test -covermode=count -coverprofile={profile} {packages}"  # {profile}, {packages} are filled in
@@ -30,6 +31,7 @@ allow = []                                 # function IDs to treat as pure even 
 
 [churn]
 window_months = 12
+scope = "function"                         # function (approximate: hunks vs current line ranges) | file
 
 [ui]
 theme = "gruvbox-dark"                     # id from the theme list or a custom theme in .qtldr/themes/

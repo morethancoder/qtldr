@@ -5,10 +5,10 @@ import {
 import { Footer, Search, Toasts, TopBar, type Crumb, type Toast } from './components/Chrome'
 import { FunctionView } from './components/FunctionView'
 import { Inspector, type InspectorActions } from './components/Inspector'
-import { isTyping, MapCanvas, type Rect } from './components/MapCanvas'
+import { isGroup, isTyping, MapCanvas, type Rect } from './components/MapCanvas'
 import { useTips } from './components/Tooltip'
 import { nearest, type Direction } from './layout'
-import { index, metricsOf, packageOf, searchItems, short, worstPackage, type Index, type Mode } from './model'
+import { GROUP, groupOf, index, metricsOf, moduleView, packageOf, parentGroup, searchItems, short, worstPackage, type Index, type Mode } from './model'
 import { formatRoute, parseRoute, type Route } from './route'
 import { applyVars, derive, pickInitial } from './theme'
 import bundled from './themes.json'
@@ -31,6 +31,7 @@ function resolve(ix: Index, r: Route): Route {
     return pkg ? { level: 1, pkg } : { level: 0 }
   }
   if (r.level === 1 && ix.byId.get(r.pkg)?.kind !== 'package') return { level: 0 }
+  if (r.level === 0 && r.group && moduleView(ix, r.group).packages.length + moduleView(ix, r.group).groups.length === 0) return { level: 0 }
   return r
 }
 
@@ -48,7 +49,10 @@ function defaultSelection(ix: Index, r: Route): string | undefined {
     const worst = metricsOf(ix, r.pkg).worst
     return worst && ix.byId.has(worst) ? worst : r.pkg
   }
-  return worstPackage(ix)
+  const v = moduleView(ix, r.group ?? '')
+  const worst = worstPackage(ix)
+  if (worst && v.packages.includes(worst)) return worst
+  return v.groups.find((g) => worst && g.packages.includes(worst))?.id ?? v.packages[0] ?? v.groups[0]?.id
 }
 
 /** focusLevel names what is selected (focus.json "level"). */
@@ -145,7 +149,7 @@ export function App() {
 
   const ix = useMemo(() => (snap ? index(snap) : null), [snap])
   const view = ix ? resolve(ix, route) : route
-  const sel = ix && view.sel && ix.byId.has(view.sel) ? view.sel : ix ? defaultSelection(ix, view) : undefined
+  const sel = ix && view.sel && (ix.byId.has(view.sel) || isGroup(view.sel)) ? view.sel : ix ? defaultSelection(ix, view) : undefined
   const line = view.level === 2 ? view.line : undefined
   const context = view.level === 1 ? view.pkg : view.level === 2 ? view.fn : undefined
 
@@ -161,12 +165,12 @@ export function App() {
   const open = useCallback((id: string) => {
     if (!ix) return
     if (id === 'more') return setExpanded(true)
+    if (isGroup(id)) return navigate({ level: 0, group: id.slice(GROUP.length) }, true)
     const n = ix.byId.get(id)
     if (!n) return
     if (n.kind === 'package') navigate({ level: 1, pkg: id }, true)
-    else if (n.kind === 'func') navigate({ level: 2, fn: id }, true)
+    else if (n.kind === 'func' || n.kind === 'type') navigate({ level: 2, fn: id }, true)
     else if (n.kind === 'external') toast('External modules are not analyzed; they are shown for context.')
-    else if (n.kind === 'type') toast('The type view (fields, usages, implemented interfaces) comes in a later version.')
   }, [ix, navigate, toast])
 
   const up = useCallback(() => {
@@ -175,20 +179,22 @@ export function App() {
       const pkg = packageOf(ix, view.fn)
       navigate(pkg ? { level: 1, pkg, sel: view.fn } : { level: 0 }, true)
     } else if (view.level === 1) {
-      navigate({ level: 0, sel: view.pkg }, true)
+      navigate({ level: 0, group: groupOf(ix, view.pkg), sel: view.pkg }, true)
+    } else if (view.group) {
+      navigate({ level: 0, group: parentGroup(view.group) || undefined, sel: GROUP + view.group }, true)
     }
     setExpanded(false)
   }, [ix, view, navigate])
 
   // Selection → inspector detail, focus.json (debounced 300 ms).
   useEffect(() => {
-    if (!sel) return
+    if (!sel || isGroup(sel)) return setDetail(null)
     let live = true
     api.node(sel).then((d) => live && setDetail(d)).catch(() => live && setDetail(null))
     return () => { live = false }
   }, [sel, snap, notesTick])
   useEffect(() => {
-    if (!sel) return
+    if (!sel || isGroup(sel)) return
     const t = window.setTimeout(() => {
       void api.focus({ id: sel, level: focusLevel(ix, sel), selected_line: line, sent: false }).catch(() => undefined)
     }, 300)
@@ -211,7 +217,7 @@ export function App() {
     select,
     open,
     copyPrompt: () => {
-      if (!sel) return
+      if (!sel || isGroup(sel)) return toast('Open the group and pick a package or function first.')
       api.prompt(sel)
         .then((r) => navigator.clipboard.writeText(r.prompt).then(
           () => toast(`Copied: “${r.prompt.slice(0, 130)}${r.prompt.length > 130 ? '…' : ''}”`),
@@ -220,7 +226,7 @@ export function App() {
         .catch((e: unknown) => toast(String(e)))
     },
     send: (message) => {
-      if (!sel) return
+      if (!sel || isGroup(sel)) return toast('Open the group and pick a package or function first.')
       api.focus({ id: sel, level: focusLevel(ix, sel), selected_line: line, message, sent: true })
         .then((r) => toast(`Sent. Ask your agent to fix what you're looking at.${r.tmux ? ' The prompt was also typed into tmux.' : ''}${r.tmux_error ? ` tmux: ${r.tmux_error}` : ''}`))
         .catch((e: unknown) => toast(String(e)))
@@ -288,13 +294,15 @@ export function App() {
   if (!ix || !snap || !cfg) return <div className="empty">Loading…</div>
 
   const moduleName = ix.module?.name ?? snap.module
-  const crumbs: Crumb[] = [{ label: moduleName, go: view.level > 0 ? () => navigate({ level: 0 }, true) : undefined }]
+  const crumbs: Crumb[] = [{ label: moduleName, go: view.level > 0 || (view.level === 0 && view.group) ? () => navigate({ level: 0 }, true) : undefined }]
+  if (view.level === 0 && view.group) crumbs.push({ label: `${view.group}/` })
   const pkgId = view.level === 1 ? view.pkg : view.level === 2 ? packageOf(ix, view.fn) : undefined
   if (pkgId) crumbs.push({ label: ix.byId.get(pkgId)?.name ?? pkgId, go: view.level > 1 ? () => navigate({ level: 1, pkg: pkgId, sel: context }, true) : undefined })
   if (view.level === 2) crumbs.push({ label: ix.byId.get(view.fn)?.name ?? short(view.fn) })
   const caption = view.level === 0
-    ? `${snap.module} · packages · arrows show imports`
-    : view.level === 1 ? `Inside ${ix.byId.get(view.pkg)?.name} · arrows show calls` : 'Called by (left) and calls (right)'
+    ? `${view.group ? `${view.group}/` : snap.module} · packages · arrows show imports`
+    : view.level === 1 ? `Inside ${ix.byId.get(view.pkg)?.name} · arrows show calls`
+    : ix.byId.get(view.fn)?.kind === 'type' ? 'Interfaces (left) and methods (right)' : 'Called by (left) and calls (right)'
   const onPositions = (r: Map<string, Rect>) => { positions.current = r }
 
   return (
@@ -306,7 +314,7 @@ export function App() {
           <div className="canvas">
             <div className="caption">{caption}</div>
             {view.level > 0 && <button type="button" className="up" onClick={up}>Up one level</button>}
-            <div className="level" key={`${view.level}:${context ?? ''}`}>
+            <div className="level" key={`${view.level}:${context ?? ''}:${view.level === 0 ? view.group ?? '' : ''}`}>
               {view.level === 2 ? (
                 <FunctionView
                   ix={ix} fn={view.fn} mode={mode} palette={palette} sel={sel} source={source} selectedLine={line} scrollTo={line}
@@ -316,7 +324,7 @@ export function App() {
                 />
               ) : (
                 <MapCanvas
-                  ix={ix} level={view.level} pkg={view.level === 1 ? view.pkg : undefined} mode={mode} palette={palette}
+                  ix={ix} level={view.level} pkg={view.level === 1 ? view.pkg : undefined} group={view.level === 0 ? view.group : undefined} mode={mode} palette={palette}
                   th={cfg.thresholds} sel={sel} expanded={expanded} onSelect={select} onOpen={open} onPositions={onPositions}
                 />
               )}

@@ -3,7 +3,8 @@
     {
       "id": "github.com/acme/ledger",
       "kind": "module",
-      "name": "ledger"
+      "name": "ledger",
+      "dir": "."
     },
     {
       "id": "github.com/acme/ledger/cmd/ledgerd",
@@ -92,6 +93,8 @@
       "parent": "github.com/acme/ledger/internal/httpapi",
       "file": "internal/httpapi/httpapi.go",
       "line": 18,
+      "end_line": 20,
+      "doc_line": 17,
       "type_kind": "interface"
     },
     {
@@ -101,6 +104,8 @@
       "parent": "github.com/acme/ledger/internal/httpapi",
       "file": "internal/httpapi/httpapi.go",
       "line": 23,
+      "end_line": 25,
+      "doc_line": 22,
       "type_kind": "struct",
       "fields": [
         {
@@ -214,6 +219,8 @@
       "parent": "github.com/acme/ledger/internal/httpapi",
       "file": "internal/httpapi/httpapi.go",
       "line": 28,
+      "end_line": 32,
+      "doc_line": 27,
       "type_kind": "struct",
       "fields": [
         {
@@ -277,6 +284,8 @@
       "parent": "github.com/acme/ledger/internal/money",
       "file": "internal/money/money.go",
       "line": 7,
+      "end_line": 7,
+      "doc_line": 6,
       "type_kind": "other"
     },
     {
@@ -365,6 +374,8 @@
       "parent": "github.com/acme/ledger/internal/order",
       "file": "internal/order/order.go",
       "line": 25,
+      "end_line": 29,
+      "doc_line": 24,
       "type_kind": "struct",
       "fields": [
         {
@@ -431,6 +442,8 @@
       "parent": "github.com/acme/ledger/internal/order",
       "file": "internal/order/order.go",
       "line": 32,
+      "end_line": 36,
+      "doc_line": 31,
       "type_kind": "struct",
       "fields": [
         {
@@ -514,6 +527,8 @@
       "parent": "github.com/acme/ledger/internal/order",
       "file": "internal/order/order.go",
       "line": 22,
+      "end_line": 22,
+      "doc_line": 21,
       "type_kind": "other"
     },
     {
@@ -523,6 +538,8 @@
       "parent": "github.com/acme/ledger/internal/order",
       "file": "internal/order/order.go",
       "line": 12,
+      "end_line": 12,
+      "doc_line": 11,
       "type_kind": "other"
     },
     {
@@ -597,6 +614,8 @@
       "parent": "github.com/acme/ledger/internal/pricing",
       "file": "internal/pricing/types.go",
       "line": 29,
+      "end_line": 33,
+      "doc_line": 28,
       "type_kind": "struct",
       "fields": [
         {
@@ -620,6 +639,8 @@
       "parent": "github.com/acme/ledger/internal/pricing",
       "file": "internal/pricing/types.go",
       "line": 11,
+      "end_line": 17,
+      "doc_line": 10,
       "type_kind": "struct",
       "fields": [
         {
@@ -651,6 +672,8 @@
       "parent": "github.com/acme/ledger/internal/pricing",
       "file": "internal/pricing/types.go",
       "line": 36,
+      "end_line": 36,
+      "doc_line": 35,
       "type_kind": "other"
     },
     {
@@ -660,6 +683,8 @@
       "parent": "github.com/acme/ledger/internal/pricing",
       "file": "internal/pricing/types.go",
       "line": 20,
+      "end_line": 26,
+      "doc_line": 19,
       "type_kind": "struct",
       "fields": [
         {
@@ -691,6 +716,8 @@
       "parent": "github.com/acme/ledger/internal/pricing",
       "file": "internal/pricing/tier.go",
       "line": 9,
+      "end_line": 9,
+      "doc_line": 8,
       "type_kind": "other"
     },
     {
@@ -764,6 +791,8 @@
       "parent": "github.com/acme/ledger/internal/store",
       "file": "internal/store/store.go",
       "line": 22,
+      "end_line": 24,
+      "doc_line": 21,
       "type_kind": "struct",
       "fields": [
         {
@@ -814,6 +843,8 @@
       "parent": "github.com/acme/ledger/internal/store",
       "file": "internal/store/store.go",
       "line": 27,
+      "end_line": 29,
+      "doc_line": 26,
       "type_kind": "struct",
       "fields": [
         {

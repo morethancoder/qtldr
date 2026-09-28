@@ -14,8 +14,8 @@ import (
 // brace) and annotates it with coverage, survivors and notes. The web view
 // and MCP get_source both use it.
 func Source(root string, snap model.Snapshot, n model.Node) (source.Source, error) {
-	if n.Kind != model.KindFunc {
-		return source.Source{}, fmt.Errorf("%s is a %s; source is shown for functions", n.ID, n.Kind)
+	if n.Kind != model.KindFunc && n.Kind != model.KindType {
+		return source.Source{}, fmt.Errorf("%s is a %s; source is shown for functions and types", n.ID, n.Kind)
 	}
 	from := n.Line
 	if n.DocLine > 0 {

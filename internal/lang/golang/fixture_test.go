@@ -248,3 +248,62 @@ func hasEdge(g model.Graph, from, to model.ID, kind model.EdgeKind) bool {
 	}
 	return false
 }
+
+func TestWorkspace(t *testing.T) {
+	root, _ := filepath.Abs(filepath.Join("..", "..", "..", "testdata", "workspace"))
+	g, err := New().Scan(context.Background(), root, config.Default().Project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	modules, dirs := 0, map[model.ID]string{}
+	for _, n := range g.Nodes {
+		if n.Kind == model.KindModule {
+			modules++
+		}
+		if n.Kind == model.KindPackage {
+			dirs[n.ID] = n.Dir
+		}
+	}
+	if modules != 2 || dirs["example.com/moda/app"] != "moda/app" || dirs["example.com/modb/lib"] != "modb/lib" {
+		t.Fatalf("modules %d dirs %v", modules, dirs)
+	}
+	if !hasEdge(g, "example.com/moda/app", "example.com/modb/lib", model.EdgeImports) ||
+		!hasEdge(g, "example.com/moda/app.Run", "example.com/modb/lib.Double", model.EdgeCalls) {
+		t.Errorf("cross-module edges missing: %v", g.Edges)
+	}
+	if n, _ := g.Node("example.com/modb/lib.Double"); n.File != "modb/lib/lib.go" {
+		t.Errorf("file %q", n.File)
+	}
+}
+
+func TestExpandWorkPatterns(t *testing.T) {
+	got := ExpandWorkPatterns([]string{"./...", ".", "example.com/x/..."}, []string{"./moda", "modb"})
+	if strings.Join(got, " ") != "./moda/... ./modb/... ./moda ./modb example.com/x/..." {
+		t.Fatalf("got %v", got)
+	}
+}
+
+func TestVTAEdges(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds SSA for the fixture")
+	}
+	root, _ := filepath.Abs(fixtureDir)
+	cfg := config.Default().Project
+	cfg.Calls = "vta"
+	g, err := New().Scan(context.Background(), root, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// cmd/ledgerd passes a *store.Store to httpapi.New, so VTA resolves
+	// handleQuote's call through RuleSource to the concrete method.
+	if !hasEdge(g, "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+		"github.com/acme/ledger/internal/store.Store.LoadRules", model.EdgeCallsDynamic) {
+		var dyn []string
+		for _, e := range g.Edges {
+			if e.Kind == model.EdgeCallsDynamic {
+				dyn = append(dyn, string(e.From)+" → "+string(e.To))
+			}
+		}
+		t.Fatalf("no resolved edge; dynamic edges: %v", dyn)
+	}
+}

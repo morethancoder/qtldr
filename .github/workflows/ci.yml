@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go: ["1.26.x", "1.27.x"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # churn and --changed read git history
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: tools
+        run: go install github.com/uudashr/gocognit/cmd/gocognit@latest
+      # lint, Go + web tests, web/dist freshness, qtldr check --all on itself
+      - run: make ci
+
+  smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true # PLAN §12: optional in CI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: cd web && npm ci && npx playwright install --with-deps chromium
+      - run: make smoke

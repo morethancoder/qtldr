@@ -22,6 +22,8 @@ type Inputs struct {
 	// FileChurn by file and PackageChurn by package dir; nil when not a git repo.
 	FileChurn    map[string]int
 	PackageChurn map[string]int
+	// FunctionChurn per function (approximate); when set it replaces file churn.
+	FunctionChurn map[model.ID]int
 	// PurityAllow lists function IDs treated as pure.
 	PurityAllow []model.ID
 }
@@ -53,12 +55,21 @@ func functionMetrics(n model.Node, m model.Metrics, in Inputs) model.Metrics {
 	if mut, ok := in.Mutation[n.ID]; ok {
 		m.Mutation = &mut
 	}
-	if in.FileChurn != nil {
-		m.Churn = model.Ptr(in.FileChurn[n.File])
-		m.ChurnScope = "file"
-	}
+	m.Churn, m.ChurnScope = churnOf(n, in)
 	m.Grades = model.Ptr(FunctionGrades(m))
 	return m
+}
+
+// churnOf is the function's churn: per function when measured, else its
+// file's.
+func churnOf(n model.Node, in Inputs) (*int, string) {
+	if c, ok := in.FunctionChurn[n.ID]; ok {
+		return model.Ptr(c), "function"
+	}
+	if in.FileChurn != nil {
+		return model.Ptr(in.FileChurn[n.File]), "file"
+	}
+	return nil, ""
 }
 
 // agg accumulates a roll-up over functions.

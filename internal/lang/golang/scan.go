@@ -19,7 +19,7 @@ import (
 type scanner struct {
 	root     string
 	cfg      config.Project
-	module   string
+	modules  map[string]string // module path → directory relative to root
 	pkgs     []*packages.Package
 	inModule map[string]bool
 	nodes    []model.Node
@@ -32,12 +32,12 @@ type scanner struct {
 }
 
 func newScanner(root string, cfg config.Project, all []*packages.Package) (*scanner, error) {
-	pkgs, mod, err := mainModule(all)
+	pkgs, mods, err := mainModules(all)
 	if err != nil {
 		return nil, err
 	}
 	s := &scanner{
-		root: mod.Dir, cfg: cfg, module: mod.Path, pkgs: pkgs,
+		root: rootDir(root, mods), cfg: cfg, modules: map[string]string{}, pkgs: pkgs,
 		inModule: map[string]bool{},
 		ids:      map[model.ID]bool{}, edges: map[model.Edge]bool{}, metrics: map[model.ID]model.Metrics{},
 	}
@@ -45,8 +45,44 @@ func newScanner(root string, cfg config.Project, all []*packages.Package) (*scan
 		s.inModule[p.PkgPath] = true
 	}
 	s.vars = newVarFacts(pkgs, s.inModule)
-	s.addNode(model.Node{ID: model.ID(mod.Path), Kind: model.KindModule, Name: shortModuleName(mod.Path)})
+	for _, m := range mods {
+		dir := relDir(s.root, m.Dir)
+		s.modules[m.Path] = dir
+		s.addNode(model.Node{ID: model.ID(m.Path), Kind: model.KindModule, Name: shortModuleName(m.Path), Dir: dir})
+	}
 	return s, nil
+}
+
+// rootDir is the single module's directory, or the workspace root.
+func rootDir(root string, mods []*packages.Module) string {
+	if len(mods) == 1 {
+		return mods[0].Dir
+	}
+	if abs, err := filepath.Abs(root); err == nil {
+		if real, err := filepath.EvalSymlinks(abs); err == nil {
+			return real
+		}
+		return abs
+	}
+	return root
+}
+
+func relDir(root, dir string) string {
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		return "."
+	}
+	return filepath.ToSlash(rel)
+}
+
+// inAnyModule reports whether an import path belongs to a main module.
+func (s *scanner) inAnyModule(imp string) bool {
+	for m := range s.modules {
+		if imp == m || strings.HasPrefix(imp, m+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *scanner) addNode(n model.Node) {
@@ -59,14 +95,15 @@ func (s *scanner) addEdge(from, to model.ID, kind model.EdgeKind) {
 }
 
 func (s *scanner) addPackage(pkg *packages.Package) {
-	rel := strings.TrimPrefix(strings.TrimPrefix(pkg.PkgPath, s.module), "/")
+	mod := pkg.Module.Path
+	rel := path.Join(s.modules[mod], strings.TrimPrefix(strings.TrimPrefix(pkg.PkgPath, mod), "/"))
 	name := rel
-	if rel == "" {
-		rel, name = ".", shortModuleName(s.module)
+	if rel == "." {
+		name = shortModuleName(mod)
 	}
 	s.addNode(model.Node{
 		ID: model.ID(pkg.PkgPath), Kind: model.KindPackage, Name: name,
-		Parent: model.ID(s.module), Dir: rel, Errors: packageErrors(pkg),
+		Parent: model.ID(mod), Dir: rel, Errors: packageErrors(pkg),
 	})
 	for _, f := range pkg.Syntax {
 		file, ok := s.relFile(pkg.Fset, f)
@@ -100,7 +137,8 @@ func (s *scanner) addDecl(pkg *packages.Package, file string, d ast.Decl) {
 			return
 		}
 		for _, spec := range d.Specs {
-			s.addType(pkg, file, spec.(*ast.TypeSpec))
+			ts := spec.(*ast.TypeSpec)
+			s.addType(pkg, file, ts, typeDoc(d, ts))
 		}
 	}
 }
@@ -147,10 +185,14 @@ func (s *scanner) uniqueID(id model.ID, file string, line int) model.ID {
 	return model.ID(fmt.Sprintf("%s:%d", withFile, line))
 }
 
-func (s *scanner) addType(pkg *packages.Package, file string, ts *ast.TypeSpec) {
+func (s *scanner) addType(pkg *packages.Package, file string, ts *ast.TypeSpec, doc *ast.CommentGroup) {
 	n := model.Node{
 		ID: model.ID(pkg.PkgPath + "." + ts.Name.Name), Kind: model.KindType, TypeKind: typeKind(ts),
 		Name: ts.Name.Name, Parent: model.ID(pkg.PkgPath), File: file, Line: pkg.Fset.Position(ts.Pos()).Line,
+		EndLine: pkg.Fset.Position(ts.End()).Line,
+	}
+	if doc != nil {
+		n.DocLine = pkg.Fset.Position(doc.Pos()).Line
 	}
 	obj, _ := pkg.TypesInfo.Defs[ts.Name].(*types.TypeName)
 	if obj != nil && n.TypeKind == "struct" {
@@ -192,6 +234,18 @@ func (s *scanner) addImplements() {
 }
 
 func typeID(obj *types.TypeName) model.ID { return model.ID(obj.Pkg().Path() + "." + obj.Name()) }
+
+// typeDoc is the spec's doc comment, or the declaration's for a lone
+// `type X …`.
+func typeDoc(d *ast.GenDecl, ts *ast.TypeSpec) *ast.CommentGroup {
+	if ts.Doc != nil {
+		return ts.Doc
+	}
+	if len(d.Specs) == 1 {
+		return d.Doc
+	}
+	return nil
+}
 
 func typeKind(ts *ast.TypeSpec) string {
 	switch ts.Type.(type) {

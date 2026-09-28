@@ -11,8 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Thresholds } from '../api'
 import { bounds, layered, shift as shiftPoints, type Point, type Sized } from '../layout'
 import {
-  functionChips, isStale, metricsOf, moduleView, packageProblems, packageView, short,
-  type Index, type Mode,
+  functionChips, GROUP, groupMetrics, isStale, metricsOf, moduleView, packageProblems, packageView, short,
+  type Group, type Index, type Mode,
 } from '../model'
 import { gradeColor, type Palette } from '../theme'
 import { edgeTypes, nodeTypes, type BoxData, type CardData, type PillData } from './nodes'
@@ -24,6 +24,7 @@ interface Props {
   ix: Index
   level: 0 | 1
   pkg?: string
+  group?: string
   mode: Mode
   palette: Palette
   th: Thresholds
@@ -70,6 +71,29 @@ function cardData(p: Props, id: string, width: number): CardData {
   }
 }
 
+/** groupData is a card for a directory of packages; it looks and rolls up
+ * like a package card and opens into its packages. */
+function groupData(p: Props, g: Group): CardData {
+  const m = groupMetrics(p.ix, g.packages)
+  const d = dots(p.palette, m)
+  const pure = g.packages.every((id) => p.ix.byId.get(id)?.pure === true)
+  const worst = m.worst ? `${p.ix.byId.get(m.worst)?.name ?? short(m.worst)} · CRAP ${m.crap_max?.toFixed(1)}` : ''
+  return {
+    id: g.id, width: PKG_W, title: `${g.prefix}/`, pure, vis: '',
+    aria: `${g.prefix}, group of ${g.packages.length} packages. Double-click to open.`,
+    cDot: d.c, mDot: d.m,
+    problems: [
+      { text: `${g.packages.length} packages`, color: p.palette.faint },
+      ...(worst && m.crap_max !== undefined && m.crap_max > p.th.crap_max ? [{ text: worst, color: p.palette.orange }] : []),
+    ],
+    chips: [],
+    style: cardStyle(p.palette, modeGrade(m, p.mode), p.sel === g.id, false),
+    onSelect: p.onSelect, onOpen: p.onOpen,
+  }
+}
+
+export const isGroup = (id: string | undefined): boolean => id?.startsWith(GROUP) ?? false
+
 function pillData(p: Props, id: string): PillData {
   const n = p.ix.byId.get(id)
   const m = metricsOf(p.ix, id)
@@ -96,12 +120,13 @@ function edge(p: Props, from: string, to: string): Edge {
 }
 
 function buildModule(p: Props): Built {
-  const v = moduleView(p.ix)
+  const v = moduleView(p.ix, p.group ?? '')
   const nodes: Node[] = [
+    ...v.groups.map((g): Node => ({ id: g.id, type: 'card', position: { x: 0, y: 0 }, data: groupData(p, g) })),
     ...v.packages.map((id): Node => ({ id, type: 'card', position: { x: 0, y: 0 }, data: cardData(p, id, PKG_W) })),
     ...v.externals.map((id): Node => ({ id, type: 'pill', position: { x: 0, y: 0 }, data: pillData(p, id) })),
   ]
-  const key = ['L0', ...nodes.map((n) => sizeKey(n))].join('|')
+  const key = ['L0', p.group ?? '', ...nodes.map((n) => sizeKey(n))].join('|')
   return { nodes, edges: v.edges.map(([a, b]) => edge(p, a, b)), key, outside: [] }
 }
 
@@ -214,7 +239,7 @@ function Inner(p: Props) {
       }))
       setReady(true)
       p.onPositions(rects(measured, at))
-      requestAnimationFrame(() => void rf.fitView({ padding: 0.12, duration: reduced ? 0 : 200 }))
+      requestAnimationFrame(() => void rf.fitView({ padding: 0.12, maxZoom: 1, duration: reduced ? 0 : 200 }))
     })
     return () => { cancelled = true }
   }, [initialized, ready, nodes.length, built, rf, reduced, p])
@@ -225,7 +250,7 @@ function Inner(p: Props) {
       if (isTyping(e.target)) return
       if (e.key === '+' || e.key === '=') void rf.zoomIn({ duration: 120 })
       else if (e.key === '-') void rf.zoomOut({ duration: 120 })
-      else if (e.key === '0') void rf.fitView({ padding: 0.12, duration: 120 })
+      else if (e.key === '0') void rf.fitView({ padding: 0.12, maxZoom: 1, duration: 120 })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Snapshot, Thresholds } from './api'
 import {
   fuzzy, functionChips, functionView, gradeOf, index, moduleView, packageOf, packageProblems,
-  packageView, riskiest, searchItems, short, worstPackage,
+  packageView, riskiest, searchItems, short, typeView, worstPackage,
 } from './model'
 import { formatRoute, parseRoute } from './route'
 import { bounds, layered, toElk } from './layout'
@@ -26,6 +26,8 @@ const snap: Snapshot = {
     { id: `${P}.applyTiered`, kind: 'func', name: 'applyTiered', parent: P, exported: false },
     { id: `${P}.price`, kind: 'func', name: 'price', parent: P },
     { id: `${P}.Rule`, kind: 'type', name: 'Rule', parent: P, type_kind: 'struct' },
+    { id: `${P}.Rule.Price`, kind: 'func', name: 'Rule.Price', parent: P, recv: 'Rule' },
+    { id: `${P}.Pricer`, kind: 'type', name: 'Pricer', parent: P, type_kind: 'interface' },
     { id: `${MONEY}.Mul`, kind: 'func', name: 'Mul', parent: MONEY },
     { id: 'github.com/go-chi/chi/v5', kind: 'external', name: 'go-chi/chi' },
   ],
@@ -36,6 +38,7 @@ const snap: Snapshot = {
     { from: `${P}.price`, to: `${P}.applyTiered`, kind: 'calls' },
     { from: `${P}.applyTiered`, to: `${MONEY}.Mul`, kind: 'calls' },
     { from: `${P}.price`, to: `${P}.Iface.M`, kind: 'calls_dynamic' },
+    { from: `${P}.Rule`, to: `${P}.Pricer`, kind: 'implements' },
   ],
   metrics: {
     [M]: { worst: `${P}.BestRule` },
@@ -47,6 +50,7 @@ const snap: Snapshot = {
       grades: { crap: 4, mutation: 4, coverage: 6, combined: 4 },
     },
     [`${P}.price`]: { cc: 2, crap: 2, grades: { crap: 10, mutation: null, coverage: 10, combined: 10 } },
+    [`${P}.Rule.Price`]: { cc: 1, crap: 1, grades: { crap: 10, mutation: null, coverage: 10, combined: 10 } },
   },
 }
 const ix = index(snap)
@@ -83,18 +87,24 @@ describe('view model', () => {
     expect(v.packages).toEqual([P, MONEY])
     expect(v.externals).toEqual(['github.com/go-chi/chi/v5'])
     expect(v.edges).toEqual([[P, MONEY], [P, 'github.com/go-chi/chi/v5']])
+    expect(v.groups).toEqual([])
   })
 
   it('package level: calls inside, called functions outside, no interface targets', () => {
     const v = packageView(ix, P, false)
-    expect(v.funcs).toHaveLength(3)
+    expect(v.funcs).toHaveLength(4)
     expect(v.outside).toEqual([`${MONEY}.Mul`])
-    expect(v.types).toEqual([`${P}.Rule`])
+    expect(v.types).toEqual([`${P}.Rule`, `${P}.Pricer`])
     expect(v.edges).toEqual([[`${P}.price`, `${P}.applyTiered`], [`${P}.applyTiered`, `${MONEY}.Mul`]])
   })
 
   it('function level: callers and callees', () => {
     expect(functionView(ix, `${P}.applyTiered`)).toEqual({ callers: [`${P}.price`], callees: [`${MONEY}.Mul`] })
+  })
+
+  it('type view', () => {
+    expect(typeView(ix, `${P}.Rule`)).toEqual({ methods: [`${P}.Rule.Price`], implements: [`${P}.Pricer`], implementedBy: [] })
+    expect(typeView(ix, `${P}.Pricer`).implementedBy).toEqual([`${P}.Rule`])
   })
 
   it('navigation helpers', () => {
@@ -166,5 +176,37 @@ describe('roundedPath', () => {
     const { roundedPath } = await import('./layout')
     expect(roundedPath([{ x: 0, y: 0 }, { x: 0, y: 20 }, { x: 30, y: 20 }])).toBe('M0,0 L0,12 Q0,20 8,20 L30,20')
     expect(roundedPath([{ x: 0, y: 0 }, { x: 0, y: 10 }])).toBe('M0,0 L0,10')
+  })
+})
+
+describe('directory grouping', () => {
+  it('groups more than 25 packages by path and rolls them up', async () => {
+    const { groupMetrics, parentGroup } = await import('./model')
+    const nodes: Snapshot['nodes'] = [{ id: 'm', kind: 'module', name: 'm' }]
+    const edges: Snapshot['edges'] = []
+    const metrics: Snapshot['metrics'] = {}
+    for (let i = 0; i < 20; i++) nodes.push({ id: `m/internal/a${i}`, kind: 'package', name: `internal/a${i}`, parent: 'm' })
+    for (let i = 0; i < 6; i++) nodes.push({ id: `m/cmd/c${i}`, kind: 'package', name: `cmd/c${i}`, parent: 'm' })
+    nodes.push({ id: 'm/tools', kind: 'package', name: 'tools', parent: 'm' })
+    edges.push({ from: 'm/cmd/c0', to: 'm/internal/a1', kind: 'imports' }, { from: 'm/cmd/c1', to: 'm/internal/a2', kind: 'imports' })
+    metrics['m/internal/a3'] = { crap_max: 30, worst: 'm/internal/a3.F', grades: { crap: 2, mutation: null, coverage: 4, combined: 2 } }
+    metrics['m/internal/a4'] = { crap_max: 9, grades: { crap: 6, mutation: 3, coverage: 8, combined: 4 } }
+    const big = index({ ...snap, nodes, edges, metrics })
+    const top = moduleView(big)
+    expect(top.groups.map((g) => [g.prefix, g.packages.length])).toEqual([['internal', 20], ['cmd', 6]])
+    expect(top.packages).toEqual(['m/tools'])
+    expect(top.edges).toEqual([['group:cmd', 'group:internal']])
+    const internal = moduleView(big, 'internal')
+    expect(internal.groups).toEqual([])
+    expect(internal.packages).toHaveLength(20)
+    expect(groupMetrics(big, top.groups[0]!.packages)).toEqual({
+      crap_max: 30, worst: 'm/internal/a3.F', grades: { crap: 2, mutation: 3, coverage: 4, combined: 2 },
+    })
+    const { groupOf } = await import('./model')
+    expect(groupOf(big, 'm/internal/a3')).toBe('internal')
+    expect(groupOf(big, 'm/tools')).toBeUndefined()
+    expect(groupOf(ix, P)).toBeUndefined()
+    expect(parentGroup('internal/x')).toBe('internal')
+    expect(parentGroup('internal')).toBe('')
   })
 })

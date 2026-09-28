@@ -126,22 +126,95 @@ export function riskiest(ix: Index, pkg: string, n: number): Riskiest[] {
   })
 }
 
-/** moduleView: packages, the external modules they import, and import
- * arrows (one per pair). */
-export function moduleView(ix: Index): { packages: string[]; externals: string[]; edges: [string, string][] } {
-  const pkgs = packages(ix).map((p) => p.id)
-  const inView = new Set(pkgs)
+export const MAX_PACKAGES = 25
+export const GROUP = 'group:'
+
+export interface Group { id: string; prefix: string; packages: string[] }
+
+export interface ModuleView {
+  packages: string[]
+  groups: Group[]
+  externals: string[]
+  edges: [string, string][]
+}
+
+/** moduleView: packages (under prefix, '' = all), grouped by the next path
+ * segment when there are more than 25; the external modules they import;
+ * and import arrows, one per pair of boxes. */
+export function moduleView(ix: Index, prefix = ''): ModuleView {
+  const under = packages(ix).filter((p) => !prefix || p.name === prefix || p.name.startsWith(prefix + '/'))
+  const boxOf = new Map<string, string>()
+  const groups = new Map<string, Group>()
+  for (const p of under) {
+    const g = under.length > MAX_PACKAGES ? groupPrefix(p.name, prefix) : null
+    if (!g) {
+      boxOf.set(p.id, p.id)
+      continue
+    }
+    const grp = groups.get(g) ?? { id: GROUP + g, prefix: g, packages: [] }
+    grp.packages.push(p.id)
+    groups.set(g, grp)
+    boxOf.set(p.id, grp.id)
+  }
+  // A group of one is just that package.
+  for (const [g, grp] of groups) {
+    if (grp.packages.length === 1) {
+      boxOf.set(grp.packages[0]!, grp.packages[0]!)
+      groups.delete(g)
+    }
+  }
+  const { externals, edges } = importEdges(ix, boxOf)
+  return {
+    packages: under.map((p) => p.id).filter((id) => boxOf.get(id) === id),
+    groups: [...groups.values()],
+    externals,
+    edges,
+  }
+}
+
+/** groupPrefix is prefix plus the package's next path segment, or null for
+ * the package at prefix itself. */
+function groupPrefix(name: string, prefix: string): string | null {
+  if (prefix && name === prefix) return null
+  const rest = prefix ? name.slice(prefix.length + 1) : name
+  const seg = rest.split('/')[0]!
+  return prefix ? `${prefix}/${seg}` : seg
+}
+
+function importEdges(ix: Index, boxOf: Map<string, string>): { externals: string[]; edges: [string, string][] } {
   const externals = new Set<string>()
   const edges = new Map<string, [string, string]>()
   for (const e of ix.snap.edges) {
-    if (e.kind !== 'imports' || !inView.has(e.from)) continue
-    const to = ix.byId.get(e.to)
-    if (!to) continue
-    if (to.kind === 'external') externals.add(e.to)
-    else if (!inView.has(e.to)) continue
-    edges.set(`${e.from}→${e.to}`, [e.from, e.to])
+    const from = boxOf.get(e.from)
+    if (e.kind !== 'imports' || !from) continue
+    let to = boxOf.get(e.to)
+    if (!to && ix.byId.get(e.to)?.kind === 'external') {
+      externals.add(e.to)
+      to = e.to
+    }
+    if (to && to !== from) edges.set(`${from}→${to}`, [from, to])
   }
-  return { packages: pkgs, externals: [...externals].sort(), edges: [...edges.values()] }
+  return { externals: [...externals].sort(), edges: [...edges.values()] }
+}
+
+/** groupMetrics rolls packages up like a package rolls up functions: worst
+ * grade per metric, highest CRAP, and the riskiest function. */
+export function groupMetrics(ix: Index, pkgs: string[]): Metrics {
+  const out: Metrics = {}
+  for (const id of pkgs) {
+    const m = metricsOf(ix, id)
+    if (m.grades) out.grades = out.grades ? worstGrades(out.grades, m.grades) : { ...m.grades }
+    if (m.crap_max !== undefined && (out.crap_max === undefined || m.crap_max > out.crap_max)) {
+      out.crap_max = m.crap_max
+      out.worst = m.worst
+    }
+  }
+  return out
+}
+
+function worstGrades(a: NonNullable<Metrics['grades']>, b: NonNullable<Metrics['grades']>): NonNullable<Metrics['grades']> {
+  const mut = a.mutation === null ? b.mutation : b.mutation === null ? a.mutation : Math.min(a.mutation, b.mutation)
+  return { crap: Math.min(a.crap, b.crap), coverage: Math.min(a.coverage, b.coverage), combined: Math.min(a.combined, b.combined), mutation: mut }
 }
 
 export interface PackageView {
@@ -201,6 +274,23 @@ export function packageOf(ix: Index, id: string): string | undefined {
   return n.parent && ix.byId.get(n.parent)?.kind === 'package' ? n.parent : undefined
 }
 
+/** groupOf is the group view that shows pkg as its own box: the shallowest
+ * prefix whose view lists it (undefined = the top level). */
+export function groupOf(ix: Index, pkg: string): string | undefined {
+  const parts = (ix.byId.get(pkg)?.name ?? '').split('/')
+  for (let i = 0; i < parts.length; i++) {
+    const prefix = parts.slice(0, i).join('/')
+    if (moduleView(ix, prefix).packages.includes(pkg)) return prefix || undefined
+  }
+  return undefined
+}
+
+/** parentGroup is the enclosing group prefix of a group ('' at the top). */
+export function parentGroup(prefix: string): string {
+  const i = prefix.lastIndexOf('/')
+  return i < 0 ? '' : prefix.slice(0, i)
+}
+
 /** worstPackage is the package holding the module's riskiest function. */
 export function worstPackage(ix: Index): string | undefined {
   const worst = ix.module ? metricsOf(ix, ix.module.id).worst : undefined
@@ -240,4 +330,20 @@ function matchScore(q: string, label: string): number | null {
     pos = next
   }
   return 100 + gaps
+}
+
+/** typeView: a type's methods, the interfaces it implements, and (for an
+ * interface) the types implementing it. */
+export function typeView(ix: Index, id: string): { methods: string[]; implements: string[]; implementedBy: string[] } {
+  const t = ix.byId.get(id)
+  const methods = ix.snap.nodes
+    .filter((n) => n.kind === 'func' && n.parent === t?.parent && n.recv === t?.name)
+    .map((n) => n.id)
+    .sort()
+  const impl = ix.snap.edges.filter((e) => e.kind === 'implements')
+  return {
+    methods,
+    implements: impl.filter((e) => e.from === id).map((e) => e.to).sort(),
+    implementedBy: impl.filter((e) => e.to === id).map((e) => e.from).sort(),
+  }
 }

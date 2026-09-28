@@ -160,3 +160,11 @@ func TestFailedPackages(t *testing.T) {
 		t.Fatalf("got %v", got)
 	}
 }
+
+func TestRelativizeModules(t *testing.T) {
+	p := parse(t, "mode: count\nexample.com/moda/app/app.go:5.23,5.45 1 0\nexample.com/modb/lib/lib.go:4.2,4.11 1 1\nexample.com/modbx/y.go:1.1,1.2 1 1\nother.org/z.go:1.1,1.2 1 1\n")
+	got := p.RelativizeModules(map[string]string{"example.com/moda": "moda", "example.com/modb": "modb", "example.com/modbx": "."})
+	if files := got.Files(); strings.Join(files, " ") != "moda/app/app.go modb/lib/lib.go y.go" {
+		t.Fatalf("files %v", files)
+	}
+}

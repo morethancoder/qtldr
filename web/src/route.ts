@@ -4,7 +4,7 @@
 //   #/func/<id>   function level      #/func/<id>?sel=<id>&line=<n>
 
 export type Route =
-  | { level: 0; sel?: string }
+  | { level: 0; group?: string; sel?: string }
   | { level: 1; pkg: string; sel?: string }
   | { level: 2; fn: string; sel?: string; line?: number }
 
@@ -19,11 +19,13 @@ export function parseRoute(hash: string): Route {
     const line = Number(params.get('line'))
     return { level: 2, fn: id, sel, line: Number.isInteger(line) && line > 0 ? line : undefined }
   }
-  return { level: 0, sel }
+  const group = params.get('group') ?? undefined
+  return group ? { level: 0, group, sel } : { level: 0, sel }
 }
 
 export function formatRoute(r: Route): string {
   const params = new URLSearchParams()
+  if (r.level === 0 && r.group) params.set('group', r.group)
   if (r.sel) params.set('sel', r.sel)
   if (r.level === 2 && r.line) params.set('line', String(r.line))
   const q = params.toString() ? `?${params}` : ''

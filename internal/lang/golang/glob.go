@@ -37,6 +37,9 @@ func matchAnySuffix(pat, segs []string) bool {
 	return false
 }
 
+// MatchAny reports whether file matches any of the patterns.
+func MatchAny(patterns []string, file string) bool { return excluded(patterns, file) }
+
 // excluded reports whether file matches any of the patterns.
 func excluded(patterns []string, file string) bool {
 	for _, p := range patterns {

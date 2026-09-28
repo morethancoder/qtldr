@@ -2,6 +2,7 @@ package coverage
 
 import (
 	"math"
+	"path"
 	"slices"
 	"strconv"
 	"strings"
@@ -40,6 +41,34 @@ func (p Profile) Relativize(module string) Profile {
 		}
 	}
 	return out
+}
+
+// RelativizeModules is Relativize for several modules (a go.work
+// workspace): each module path maps to its directory relative to the root.
+func (p Profile) RelativizeModules(dirs map[string]string) Profile {
+	out := Profile{Mode: p.Mode}
+	for _, b := range p.Blocks {
+		if rel, ok := relativeTo(b.File, dirs); ok {
+			b.File = rel
+			out.Blocks = append(out.Blocks, b)
+		}
+	}
+	return out
+}
+
+// relativeTo maps an import-path file name to a root-relative path using the
+// longest matching module path.
+func relativeTo(file string, dirs map[string]string) (string, bool) {
+	best := ""
+	for mod := range dirs {
+		if strings.HasPrefix(file, mod+"/") && len(mod) > len(best) {
+			best = mod
+		}
+	}
+	if best == "" {
+		return "", false
+	}
+	return path.Join(dirs[best], strings.TrimPrefix(file, best+"/")), true
 }
 
 // Without drops blocks of files in the given package directories (relative,

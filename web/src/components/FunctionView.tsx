@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react'
 import type { Source } from '../api'
-import { functionView, metricsOf, short, type Index, type Mode } from '../model'
+import { functionView, metricsOf, short, typeView, type Index, type Mode } from '../model'
 import { gradeColor, type Palette } from '../theme'
 import type { Rect } from './MapCanvas'
 import { SourceView } from './SourceView'
@@ -29,7 +29,13 @@ export function FunctionView(p: Props) {
   const node = p.ix.byId.get(p.fn)
   const m = metricsOf(p.ix, p.fn)
   const d = dots(p.palette, m)
-  const { callers, callees } = functionView(p.ix, p.fn)
+  const isType = node?.kind === 'type'
+  const tv = isType ? typeView(p.ix, p.fn) : null
+  const { callers, callees } = tv
+    ? { callers: tv.implements.length > 0 ? tv.implements : tv.implementedBy, callees: tv.methods }
+    : functionView(p.ix, p.fn)
+  const leftLabel = tv ? (tv.implements.length > 0 ? 'Implements' : 'Implemented by') : 'Called by'
+  const rightLabel = tv ? 'Methods' : 'Calls'
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -46,26 +52,28 @@ export function FunctionView(p: Props) {
   return (
     <div className="fnview" ref={root}>
       <div className="fn-pills">
-        <div className="side" aria-label="Called by">
+        <div className="side" aria-label={leftLabel}>
+          {tv && callers.length > 0 && <span className="label">{leftLabel}</span>}
           {callers.map((id) => <FnPill key={id} id={id} dir="down" {...p} />)}
         </div>
-        <div className="side" aria-label="Calls">
+        <div className="side" aria-label={rightLabel}>
+          {tv && callees.length > 0 && <span className="label">{rightLabel}</span>}
           {callees.map((id) => <FnPill key={id} id={id} dir="up" {...p} />)}
         </div>
       </div>
       <section className="fn-box" style={boxStyle(p.palette, modeGrade(m, p.mode), p.sel === p.fn)}>
         <div className="box-head">
-          <button type="button" className="box-title" data-qt-id={p.fn} aria-label={`${node?.name} function`} onClick={() => p.onSelect(p.fn)}>
+          <button type="button" className="box-title" data-qt-id={p.fn} aria-label={`${node?.name} ${isType ? 'type' : 'function'}`} onClick={() => p.onSelect(p.fn)}>
             {node?.pure && <span className="lambda">λ</span>}
             <span className="name">{node?.name}</span>
-            <span className="dotc" style={{ background: d.c }}>C</span>
-            <span className="dotc" style={{ background: d.m }}>M</span>
+            {!isType && <span className="dotc" style={{ background: d.c }}>C</span>}
+            {!isType && <span className="dotc" style={{ background: d.m }}>M</span>}
           </button>
           <span className="box-sub">{node?.file} · lines {lines}</span>
           <span className="grow" />
-          <div className="legend">
+          {!isType && <div className="legend">
             {legend.map(([c, t]) => <span key={t}><i style={{ background: c }} />{t}</span>)}
-          </div>
+          </div>}
         </div>
         {p.source ? (
           <SourceView

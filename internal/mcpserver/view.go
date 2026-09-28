@@ -66,25 +66,29 @@ type NoteView struct {
 
 // NodeView is everything an agent needs about one node.
 type NodeView struct {
-	ID        model.ID        `json:"id"`
-	Kind      model.Kind      `json:"kind"`
-	Name      string          `json:"name"`
-	File      string          `json:"file,omitempty"`
-	Lines     string          `json:"lines,omitempty"`
-	Signature string          `json:"signature,omitempty"`
-	Pure      *bool           `json:"pure,omitempty"`
-	Effects   []string        `json:"effects,omitempty"`
-	Scores    Scores          `json:"scores"`
-	Worst     string          `json:"riskiest_function,omitempty"`
-	Callers   []string        `json:"callers,omitempty"`
-	Callees   []string        `json:"callees,omitempty"`
-	Children  []string        `json:"contains,omitempty"`
-	Uncovered []string        `json:"uncovered_lines,omitempty"`
-	Partial   []string        `json:"partly_covered_lines,omitempty"`
-	Survivors []Survivor      `json:"surviving_mutants,omitempty"`
-	Notes     []NoteView      `json:"notes,omitempty"`
-	Verify    string          `json:"verify"`
-	Glossary  map[string]Term `json:"glossary,omitempty"`
+	ID            model.ID        `json:"id"`
+	Kind          model.Kind      `json:"kind"`
+	Name          string          `json:"name"`
+	File          string          `json:"file,omitempty"`
+	Lines         string          `json:"lines,omitempty"`
+	Signature     string          `json:"signature,omitempty"`
+	Pure          *bool           `json:"pure,omitempty"`
+	Effects       []string        `json:"effects,omitempty"`
+	Scores        Scores          `json:"scores"`
+	Worst         string          `json:"riskiest_function,omitempty"`
+	Callers       []string        `json:"callers,omitempty"`
+	Callees       []string        `json:"callees,omitempty"`
+	Children      []string        `json:"contains,omitempty"`
+	Fields        []model.Field   `json:"fields,omitempty"`
+	Methods       []string        `json:"methods,omitempty"`
+	Implements    []string        `json:"implements,omitempty"`
+	ImplementedBy []string        `json:"implemented_by,omitempty"`
+	Uncovered     []string        `json:"uncovered_lines,omitempty"`
+	Partial       []string        `json:"partly_covered_lines,omitempty"`
+	Survivors     []Survivor      `json:"surviving_mutants,omitempty"`
+	Notes         []NoteView      `json:"notes,omitempty"`
+	Verify        string          `json:"verify"`
+	Glossary      map[string]Term `json:"glossary,omitempty"`
 }
 
 // termsUsed are attached to every node view.
@@ -108,6 +112,7 @@ func nodeView(d model.Detail, th config.Thresholds, g glossary.Glossary, placed 
 	v := NodeView{
 		ID: n.ID, Kind: n.Kind, Name: n.Name, File: n.File, Signature: n.Signature, Pure: n.Pure, Effects: n.Effects,
 		Scores: scores(m, th), Callers: shorts(d.Callers), Callees: shorts(d.Callees), Children: shorts(d.Children),
+		Fields: n.Fields, Methods: shorts(d.Methods), Implements: shorts(d.Implements), ImplementedBy: shorts(d.ImplementedBy),
 		Verify: "qtldr check " + checkTarget(n), Glossary: terms(g, termsUsed...),
 	}
 	if n.Line > 0 {

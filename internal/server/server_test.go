@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/fs"
 	"net/http"
@@ -248,7 +249,7 @@ func TestRefreshAndWatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() { _ = ts.Watch(ctx) }()
-	time.Sleep(300 * time.Millisecond) // let the watcher register
+	<-ts.Watching()
 	tier := filepath.Join(ts.root, "internal", "pricing", "tier.go")
 	b, _ := os.ReadFile(tier)
 	if err := os.WriteFile(tier, []byte(strings.Replace(string(b), "qty >= t.Floor", "qty > t.Floor", 1)), 0o644); err != nil {
@@ -422,5 +423,39 @@ func TestNoticesOtherProcesses(t *testing.T) {
 	waitEvent(t, events, "snapshot")
 	if !ts.snapshot().Generated.Equal(snap.Generated) {
 		t.Error("newer snapshot not loaded")
+	}
+}
+
+func TestRescanWaitsForBusy(t *testing.T) {
+	ts := start(t, nil)
+	ts.busy.Store(true)
+	if ts.rescan(context.Background()) {
+		t.Fatal("rescan must not run while busy")
+	}
+	ts.busy.Store(false)
+	if !ts.rescan(context.Background()) {
+		t.Fatal("rescan must run when idle")
+	}
+}
+
+func TestWatchLoop(t *testing.T) {
+	ts := start(t, nil)
+	var logs strings.Builder
+	ts.opt.Log = &logs
+	events := make(chan fsnotify.Event, 2)
+	errs := make(chan error, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error)
+	ts.busy.Store(true) // the first timer finds another analysis running
+	go func() { done <- ts.watchLoop(ctx, events, errs, func(string) error { return nil }) }()
+	errs <- errors.New("too many open files")
+	events <- fsnotify.Event{Name: "x/a.go", Op: fsnotify.Write}
+	time.Sleep(2 * debounce)
+	ts.busy.Store(false)
+	sub := ts.subscribe(t)
+	waitEvent(t, sub, "snapshot")
+	cancel()
+	if err := <-done; err != nil || !strings.Contains(logs.String(), "too many open files") {
+		t.Fatalf("err %v logs %q", err, logs.String())
 	}
 }

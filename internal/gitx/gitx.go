@@ -182,3 +182,63 @@ func (r Range) Touches(from, to int) bool {
 	}
 	return r.Start <= to && r.End >= from
 }
+
+// Span is a function's current location, for function churn.
+type Span struct {
+	ID   model.ID
+	File string
+	From int
+	To   int
+}
+
+// ReadFunctionChurn counts, per function, the commits in the window whose
+// changed lines fall inside the function's current line range, from one
+// `git log -p -U0` pass under root. Line numbers shift over history, so this
+// is approximate (labeled so in the UI).
+func ReadFunctionChurn(ctx context.Context, root string, months int, spans []Span) (map[model.ID]int, error) {
+	if !IsRepo(ctx, root) {
+		return nil, ErrNotRepo
+	}
+	out, err := git(ctx, root, "log", fmt.Sprintf("--since=%d months ago", months), "--format=%x00commit",
+		"-p", "-U0", "--relative", "--no-renames", "--no-color", "--no-ext-diff", "--", ".")
+	if err != nil {
+		return nil, err
+	}
+	return CountFunctionChurn(ParseLogPatch(out), spans), nil
+}
+
+// ParseLogPatch splits `git log -p -U0 --format=%x00commit` output into one
+// hunk map per commit.
+func ParseLogPatch(out string) []map[string][]Range {
+	var commits []map[string][]Range
+	for _, c := range strings.Split(out, "\x00commit") {
+		if strings.TrimSpace(c) == "" {
+			continue
+		}
+		commits = append(commits, ParseDiff(c))
+	}
+	return commits
+}
+
+// CountFunctionChurn counts the commits that touched each span.
+func CountFunctionChurn(commits []map[string][]Range, spans []Span) map[model.ID]int {
+	out := map[model.ID]int{}
+	for _, sp := range spans {
+		out[sp.ID] = 0
+		for _, hunks := range commits {
+			if touchesAny(hunks[sp.File], sp.From, sp.To) {
+				out[sp.ID]++
+			}
+		}
+	}
+	return out
+}
+
+func touchesAny(rs []Range, from, to int) bool {
+	for _, r := range rs {
+		if r.Touches(from, to) {
+			return true
+		}
+	}
+	return false
+}

@@ -127,8 +127,8 @@ func (s *Server) annotated(id string) (source.Source, int, error) {
 	if err != nil {
 		return source.Source{}, http.StatusNotFound, err
 	}
-	if n.Kind != model.KindFunc {
-		return source.Source{}, http.StatusBadRequest, fmt.Errorf("%s is a %s; source is shown for functions", n.ID, n.Kind)
+	if n.Kind != model.KindFunc && n.Kind != model.KindType {
+		return source.Source{}, http.StatusBadRequest, fmt.Errorf("%s is a %s; source is shown for functions and types", n.ID, n.Kind)
 	}
 	src, err := analysis.Source(s.opt.Root, snap, n)
 	if err != nil {

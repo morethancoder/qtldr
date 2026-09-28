@@ -64,9 +64,23 @@ func effectOf(res map[model.ID]PurityResult, impls map[model.ID][]model.ID, e mo
 			return "calls " + short(e.To) + " (effectful)"
 		}
 	case model.EdgeCallsDynamic:
-		if !allPure(res, impls[e.To]) {
-			return "calls " + short(e.To) + " through an interface"
+		return dynamicEffect(res, impls, e.To)
+	}
+	return ""
+}
+
+// dynamicEffect: a call resolved to a concrete function (vta) is effectful
+// when that function is; a call to an interface method is pure only when
+// every module implementation is.
+func dynamicEffect(res map[model.ID]PurityResult, impls map[model.ID][]model.ID, to model.ID) string {
+	if r, ok := res[to]; ok {
+		if !r.Pure {
+			return "may call " + short(to) + " (effectful)"
 		}
+		return ""
+	}
+	if !allPure(res, impls[to]) {
+		return "calls " + short(to) + " through an interface"
 	}
 	return ""
 }

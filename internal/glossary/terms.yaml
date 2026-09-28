@@ -101,7 +101,7 @@ terms:
   churn:
     title: "Churn"
     short: "How many commits touched this code in the last {churn_months} months."
-    body: "Counted from git log. v1 counts per file (labeled 'file churn'). Complex code that changes often is where bugs cluster."
+    body: "Counted from git log: per function by default (commits whose changed lines fall in its current lines, so approximate), or per file with [churn].scope = \"file\". Complex code that changes often is where bugs cluster."
     good: "Low is calm. High churn plus high CRAP is the top refactoring target."
     links:
       - {text: "Code Maat — churn analysis", url: "https://github.com/adamtornhill/code-maat"}

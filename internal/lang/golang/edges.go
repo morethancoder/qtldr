@@ -7,7 +7,6 @@ import (
 	"go/types"
 	"maps"
 	"slices"
-	"strings"
 
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/types/typeutil"
@@ -123,7 +122,7 @@ func (s *scanner) addImports(ctx context.Context) error {
 // isExternal: not cgo's "C" and not a module package (analyzed or outside
 // the include patterns).
 func (s *scanner) isExternal(imp string) bool {
-	return imp != "C" && !s.inModule[imp] && !strings.HasPrefix(imp, s.module+"/")
+	return imp != "C" && !s.inModule[imp] && !s.inAnyModule(imp)
 }
 
 func (s *scanner) addExternals(ctx context.Context, external map[string][]string) error {

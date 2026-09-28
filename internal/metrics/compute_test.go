@@ -116,3 +116,25 @@ func TestComputeRollUp(t *testing.T) {
 		t.Errorf("package purity %v", pure)
 	}
 }
+
+func TestPurityThroughResolvedDynamicCall(t *testing.T) {
+	g := model.Graph{
+		Nodes: []model.Node{
+			{ID: "p.caller", Kind: model.KindFunc},
+			{ID: "p.pureImpl", Kind: model.KindFunc},
+			{ID: "p.dirtyImpl", Kind: model.KindFunc, Effects: []string{"calls os.Getenv"}},
+			{ID: "p.other", Kind: model.KindFunc},
+		},
+		Edges: []model.Edge{
+			{From: "p.caller", To: "p.dirtyImpl", Kind: model.EdgeCallsDynamic},
+			{From: "p.other", To: "p.pureImpl", Kind: model.EdgeCallsDynamic},
+		},
+	}
+	res := Purity(g, nil)
+	if res["p.caller"].Pure || res["p.caller"].Effects[0] != "may call p.dirtyImpl (effectful)" {
+		t.Errorf("caller %+v", res["p.caller"])
+	}
+	if !res["p.other"].Pure {
+		t.Errorf("a resolved call to a pure function stays pure: %+v", res["p.other"])
+	}
+}

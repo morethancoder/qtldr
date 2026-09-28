@@ -57,6 +57,9 @@ type Server struct {
 	// notesSeen is the notes.json modification time last seen (poll loop only).
 	notesSeen    time.Time
 	notesChecked bool
+	// watching is closed once Watch has added its directories.
+	watching  chan struct{}
+	watchOnce sync.Once
 }
 
 // New analyzes the module (structure plus cached coverage) and returns a
@@ -71,7 +74,7 @@ func New(ctx context.Context, opt Options) (*Server, error) {
 	if opt.Log == nil {
 		opt.Log = io.Discard
 	}
-	s := &Server{opt: opt, token: newToken(), cfg: opt.Config, events: newBroker()}
+	s := &Server{opt: opt, token: newToken(), cfg: opt.Config, events: newBroker(), watching: make(chan struct{})}
 	res, err := opt.Run(ctx, analysis.Options{Root: opt.Root, Config: opt.Config, Now: opt.Now()})
 	if err != nil {
 		return nil, err
@@ -85,6 +88,9 @@ func newToken() string {
 	_, _ = rand.Read(b[:])
 	return hex.EncodeToString(b[:])
 }
+
+// Watching is closed once Watch is watching every package directory.
+func (s *Server) Watching() <-chan struct{} { return s.watching }
 
 // Token is the per-run token (tests use it).
 func (s *Server) Token() string { return s.token }

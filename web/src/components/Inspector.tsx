@@ -3,7 +3,7 @@
 
 import { useState, type ReactNode } from 'react'
 import type { Config, Detail, Glossary, Metrics, QNode } from '../api'
-import { fmt, funcsOf, metricsOf, riskiest, short, typesOf, type Index } from '../model'
+import { fmt, funcsOf, GROUP, groupMetrics, metricsOf, moduleView, riskiest, short, typeView, typesOf, type Index } from '../model'
 import { gradeColor, type Palette } from '../theme'
 import { Help, type TipState } from './Tooltip'
 
@@ -36,6 +36,7 @@ interface Props {
 interface RowSpec { key: string; label: string; value: string; grade?: number | null; stale?: boolean }
 
 export function Inspector(p: Props) {
+  if (p.id?.startsWith(GROUP)) return <GroupInspector {...p} prefix={p.id.slice(GROUP.length)} />
   const node = p.id ? p.ix.byId.get(p.id) : undefined
   if (!node) {
     return <aside className="inspector" aria-label="Inspector"><span className="muted">Select a box to inspect it.</span></aside>
@@ -94,7 +95,7 @@ function describe(p: Props, node: QNode, m: Metrics): Spec {
   switch (node.kind) {
     case 'package': return packageSpec(p, node, m)
     case 'func': return funcSpec(p, node, m)
-    case 'type': return typeSpec(node)
+    case 'type': return typeSpec(p, node)
     case 'external': return { kind: 'External module', title: node.name, sub: 'Not analyzed. Shown so you can see what the code depends on.', rows: [] }
   }
   return { kind: 'Module', title: node.name, sub: node.id, rows: [] }
@@ -164,7 +165,7 @@ function funcSpec(p: Props, node: QNode, m: Metrics): Spec {
       { key: 'cognitive', label: 'Cognitive', value: String(m.cognitive ?? '—') },
       coverageRow(m, m.grades?.coverage),
       ...mutRows(m),
-      { key: 'churn', label: 'Churn (file)', value: commits(m.churn) },
+      { key: 'churn', label: m.churn_scope === 'function' ? 'Churn (approx.)' : 'Churn (file)', value: commits(m.churn) },
     ],
     list: survivorList(p, node, m),
     primary: p.level === 2 && node.id === p.context
@@ -186,12 +187,19 @@ function survivorList(p: Props, node: QNode, m: Metrics): ReactNode {
   )
 }
 
-function typeSpec(node: QNode): Spec {
+function typeSpec(p: Props, node: QNode): Spec {
+  const tv = typeView(p.ix, node.id)
+  const items: Item[] = [
+    ...(node.fields ?? []).map((f) => ({ key: `f:${f.name}`, a: f.name, b: f.type, c: 'field', color: '', go: undefined })),
+    ...tv.methods.map((m) => ({ key: m, a: p.ix.byId.get(m)?.name ?? short(m), b: 'method', c: fmt.crap(metricsOf(p.ix, m).crap), color: '', go: () => p.actions.select(m) })),
+    ...[...tv.implements, ...tv.implementedBy].map((t) => ({
+      key: `i:${t}`, a: short(t), b: tv.implements.includes(t) ? 'implements' : 'implemented by', c: '', color: '', go: () => p.actions.select(t),
+    })),
+  ]
   return {
     kind: `Type · ${node.type_kind ?? 'other'}`, title: node.name, sub: `${node.file}:${node.line}`, rows: [],
-    list: node.fields && node.fields.length > 0 && (
-      <List title="Fields" items={node.fields.map((f) => ({ key: f.name, a: f.name, b: f.type, c: '', color: '', go: undefined }))} />
-    ),
+    list: items.length > 0 && <List title="Fields, methods and interfaces" items={items} />,
+    primary: p.level === 2 && node.id === p.context ? undefined : { label: 'Show code', run: () => p.actions.open(node.id) },
   }
 }
 
@@ -248,4 +256,37 @@ function Actions(p: Props & { node: QNode; primary?: Spec['primary']; secondary?
 function commits(n: number | undefined): string {
   if (n === undefined) return 'not measured'
   return n === 1 ? '1 commit' : `${n} commits`
+}
+
+/** GroupInspector describes a directory group of packages. */
+function GroupInspector(p: Props & { prefix: string }) {
+  const g = moduleView(p.ix, parentOf(p.prefix)).groups.find((x) => x.prefix === p.prefix)
+  const pkgs = g?.packages ?? []
+  const m = groupMetrics(p.ix, pkgs)
+  const worstFirst = [...pkgs].sort((a, b) => (metricsOf(p.ix, b).crap_max ?? -1) - (metricsOf(p.ix, a).crap_max ?? -1)).slice(0, 3)
+  return (
+    <aside className="inspector" aria-label="Inspector">
+      <div className="ins-head">
+        <span className="kind">Package group</span>
+        <div className="ins-title"><h2>{p.prefix}/</h2></div>
+        <span className="sub">{pkgs.length} packages</span>
+      </div>
+      <div className="rows">
+        <MetricRow {...p} row={{ key: 'crap_max', label: 'CRAP max', value: fmt.crap(m.crap_max), grade: m.grades?.crap ?? 1 }} />
+        <MetricRow {...p} row={{ key: 'grade', label: 'Grade', value: m.grades ? `${m.grades.combined} of 10` : '—', grade: m.grades?.combined }} />
+      </div>
+      <List title="Riskiest packages" items={worstFirst.map((id) => ({
+        key: id, a: p.ix.byId.get(id)?.name ?? id, b: short(metricsOf(p.ix, id).worst ?? ''), c: fmt.crap(metricsOf(p.ix, id).crap_max),
+        color: '', go: () => p.actions.select(id),
+      }))} />
+      <div className="actions">
+        <button type="button" className="primary" onClick={() => p.actions.open(GROUP + p.prefix)}>Open group</button>
+      </div>
+    </aside>
+  )
+}
+
+function parentOf(prefix: string): string {
+  const i = prefix.lastIndexOf('/')
+  return i < 0 ? '' : prefix.slice(0, i)
 }

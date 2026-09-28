@@ -47,6 +47,11 @@ func TestParse(t *testing.T) {
 			return c.Editor.Command != ""
 		}},
 		{name: "syntax error", text: "[project\n", wantErr: "test.toml"},
+		{name: "provider without extensions", text: "[[providers]]\nname = \"py\"\ncommand = \"x\"\n", wantErr: "providers[0] needs name, command and extensions"},
+		{name: "provider", text: "[[providers]]\nname = \"py\"\ncommand = \"x\"\nextensions = [\".py\"]\n", check: func(c Config) bool {
+			return len(c.Providers) == 1 && c.Providers[0].Extensions[0] == ".py"
+		}},
+		{name: "bad calls", text: "[project]\ncalls = \"magic\"\n", wantErr: "project.calls"},
 	}
 	for _, c := range cases {
 		cfg, warns, err := Parse("test.toml", c.text)

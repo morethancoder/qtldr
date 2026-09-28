@@ -75,3 +75,16 @@ func TestTouches(t *testing.T) {
 		}
 	}
 }
+
+func TestFunctionChurn(t *testing.T) {
+	log := "\x00commit\n\ndiff --git a/p/a.go b/p/a.go\n--- a/p/a.go\n+++ b/p/a.go\n@@ -3 +3 @@\n-x\n+y\n@@ -20,0 +21,2 @@\n+a\n+b\n" +
+		"\x00commit\n\ndiff --git a/p/a.go b/p/a.go\n--- /dev/null\n+++ b/p/a.go\n@@ -0,0 +1,30 @@\n+new file\n"
+	commits := ParseLogPatch(log)
+	if len(commits) != 2 {
+		t.Fatalf("commits %v", commits)
+	}
+	got := CountFunctionChurn(commits, []Span{{ID: "f", File: "p/a.go", From: 1, To: 5}, {ID: "g", File: "p/a.go", From: 21, To: 25}, {ID: "h", File: "p/b.go", From: 1, To: 9}})
+	if got["f"] != 2 || got["g"] != 2 || got["h"] != 0 {
+		t.Fatalf("got %v", got)
+	}
+}

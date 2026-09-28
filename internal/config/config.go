@@ -33,6 +33,17 @@ type Config struct {
 	UI         UI         `toml:"ui"`
 	Editor     Editor     `toml:"editor"`
 	Agent      Agent      `toml:"agent"`
+	Providers  []Provider `toml:"providers"`
+}
+
+// Provider is an external language provider (docs/provider-contract.md).
+type Provider struct {
+	Name       string   `toml:"name"`
+	Command    string   `toml:"command"`
+	Extensions []string `toml:"extensions"`
+	// Args, when set, is the exact argv (from the command line) and Command
+	// is only its description.
+	Args []string `toml:"-"`
 }
 
 // Project says what to analyze.
@@ -42,6 +53,7 @@ type Project struct {
 	BaseRef         string   `toml:"base_ref"`
 	ExternalModules string   `toml:"external_modules"`
 	ShowStdlib      bool     `toml:"show_stdlib"`
+	Calls           string   `toml:"calls"`
 }
 
 // Coverage says how tests are run for coverage.
@@ -75,7 +87,8 @@ type Purity struct {
 
 // Churn configures the git history window.
 type Churn struct {
-	WindowMonths int `toml:"window_months"`
+	WindowMonths int    `toml:"window_months"`
+	Scope        string `toml:"scope"`
 }
 
 // UI configures the web UI.
@@ -158,7 +171,7 @@ func Parse(name, text string) (Config, []string, error) {
 	return c, warnings, nil
 }
 
-var tables = []string{"project", "coverage", "mutation", "thresholds", "purity", "churn", "ui", "editor", "agent"}
+var tables = []string{"project", "coverage", "mutation", "thresholds", "purity", "churn", "ui", "editor", "agent", "providers"}
 
 // unknownKeys turns undecoded keys into an error (unknown table or top-level
 // key) or warnings (unknown key inside a known table).
@@ -174,22 +187,40 @@ func unknownKeys(name string, keys []toml.Key) ([]string, error) {
 }
 
 func (c Config) validate() error {
+	if err := c.validateEnums(); err != nil {
+		return err
+	}
+	if c.Editor.Preset == "custom" && c.Editor.Command == "" {
+		return errors.New(`editor.preset = "custom" needs editor.command, e.g. "nvim +{line} {file}"`)
+	}
+	return c.validateProviders()
+}
+
+func (c Config) validateEnums() error {
 	checks := []struct {
 		key, val string
 		allowed  []string
 	}{
 		{"project.external_modules", c.Project.ExternalModules, []string{"collapsed", "hidden"}},
+		{"project.calls", c.Project.Calls, []string{"interfaces", "vta"}},
 		{"coverage.coverpkg", c.Coverage.Coverpkg, []string{"own", "module"}},
 		{"mutation.engine", c.Mutation.Engine, []string{"gremlins"}},
 		{"editor.preset", c.Editor.Preset, Presets},
+		{"churn.scope", c.Churn.Scope, []string{"function", "file"}},
 	}
 	for _, ch := range checks {
 		if !slices.Contains(ch.allowed, ch.val) {
 			return fmt.Errorf("%s = %q; use one of: %s", ch.key, ch.val, strings.Join(ch.allowed, ", "))
 		}
 	}
-	if c.Editor.Preset == "custom" && c.Editor.Command == "" {
-		return errors.New(`editor.preset = "custom" needs editor.command, e.g. "nvim +{line} {file}"`)
+	return nil
+}
+
+func (c Config) validateProviders() error {
+	for i, p := range c.Providers {
+		if p.Name == "" || p.Command == "" || len(p.Extensions) == 0 {
+			return fmt.Errorf("providers[%d] needs name, command and extensions (e.g. [\".py\"])", i)
+		}
 	}
 	return nil
 }

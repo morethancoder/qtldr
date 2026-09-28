@@ -69,6 +69,9 @@ func printDetail(w io.Writer, d model.Detail) {
 	printIDs(w, "Imports", d.Imports)
 	printIDs(w, "Imported by", d.ImportedBy)
 	printIDs(w, "Contains", d.Children)
+	printIDs(w, "Methods", d.Methods)
+	printIDs(w, "Implements", d.Implements)
+	printIDs(w, "Implemented by", d.ImplementedBy)
 }
 
 func kindLabel(n model.Node) string {
@@ -118,7 +121,7 @@ func metricRows(n model.Node, m model.Metrics) []row {
 			{"Coverage", coverageText(m.Coverage, m.Grades)},
 			{"Mutation score", mutationText(m.Mutation, m.Grades)},
 			{"Lines", intOrNotMeasured(m.LOC)},
-			{"Churn (file)", intOrNotMeasured(m.Churn)},
+			{churnLabel(m.ChurnScope), intOrNotMeasured(m.Churn)},
 			{"Grade", gradeText(m.Grades)},
 		}
 	case model.KindPackage, model.KindModule:
@@ -147,6 +150,13 @@ func errorRows(m model.Metrics) []row {
 		rows = append(rows, row{"Mutation error", m.MutationError})
 	}
 	return rows
+}
+
+func churnLabel(scope string) string {
+	if scope == "function" {
+		return "Churn (approx.)"
+	}
+	return "Churn (file)"
 }
 
 func printRows(w io.Writer, rows []row) {

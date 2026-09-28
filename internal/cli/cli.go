@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -65,6 +66,7 @@ type command struct {
 func commands() []command {
 	return []command{
 		{name: "init", summary: "write .qtldr.toml, add .gitignore rules, run doctor", run: runInit},
+		{name: "version", summary: "print the qtldr version", run: runVersion},
 		{name: "doctor", summary: "check go, git, gremlins and the editor command", run: runDoctor},
 		{name: "analyze", args: "[pkgs...] [--coverage] [--mutate] [--changed]", summary: "scan structure and complexity (and run tests with --coverage); write the snapshot", run: runAnalyze, flags: analyzeFlags},
 		{name: "check", args: "[--changed | --all] [--fast] [--files-from-stdin] [ids or files...]", summary: "pass/fail report against the thresholds; exit 1 on a breach", run: runCheck, flags: checkFlags},
@@ -74,6 +76,7 @@ func commands() []command {
 		{name: "serve", args: "[--open] [--port N] [--watch]", summary: "web UI on 127.0.0.1", run: runServe, flags: serveFlags},
 		{name: "mcp", summary: "MCP server over stdio for agents (Claude Code: qtldr hook install --claude)", run: runMCP},
 		{name: "note", args: "add <id> [--line N] <text> | list [id] | resolve <note-id>", summary: "code notes for people and agents", run: runNote, flags: noteFlags},
+		{name: "provider", args: "test <name> | test --ext .py -- <command>", summary: "check an external language provider against the contract", run: runProvider, flags: providerFlags},
 		{name: "explain", args: "[term]", summary: "what a metric means (same text as the UI tooltips)", run: runExplain},
 		{name: "hook", args: "install [--claude] [--git]", summary: "run qtldr check from Claude Code or git pre-push", run: runHook, flags: hookFlags},
 	}
@@ -141,6 +144,15 @@ func (c exitCode) Error() string { return fmt.Sprintf("exit %d", int(c)) }
 // parseInterspersed lets flags follow positional arguments, e.g.
 // `qtldr show applyTiered --json`.
 func parseInterspersed(fs *flag.FlagSet, args []string) ([]string, error) {
+	var rest []string
+	if i := slices.Index(args, "--"); i >= 0 {
+		args, rest = args[:i], args[i+1:]
+	}
+	pos, err := parseFlags(fs, args)
+	return append(pos, rest...), err
+}
+
+func parseFlags(fs *flag.FlagSet, args []string) ([]string, error) {
 	var pos []string
 	for {
 		if err := fs.Parse(args); err != nil {
@@ -196,13 +208,23 @@ func findModuleRoot(start string) (string, error) {
 		start = real
 	}
 	for dir := start; ; dir = filepath.Dir(dir) {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+		if isRoot(dir) {
 			return dir, nil
 		}
 		if filepath.Dir(dir) == dir {
-			return "", fmt.Errorf("no go.mod in %s or any parent; run qtldr inside a Go module or pass -C <dir>", start)
+			return "", fmt.Errorf("no go.mod or go.work in %s or any parent; run qtldr inside a Go module or pass -C <dir>", start)
 		}
 	}
+}
+
+// isRoot: a module (go.mod) or a workspace (go.work).
+func isRoot(dir string) bool {
+	for _, f := range []string{"go.mod", "go.work"} {
+		if _, err := os.Stat(filepath.Join(dir, f)); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 // setup finds the module root and loads its configuration.

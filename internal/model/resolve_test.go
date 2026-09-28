@@ -64,3 +64,26 @@ func TestNeighbors(t *testing.T) {
 		t.Fatalf("in %v out %v", in, out)
 	}
 }
+
+func TestDetailOfType(t *testing.T) {
+	g := Graph{
+		Nodes: []Node{
+			{ID: "p", Kind: KindPackage},
+			{ID: "p.T", Kind: KindType, Name: "T", Parent: "p"},
+			{ID: "p.I", Kind: KindType, Name: "I", Parent: "p"},
+			{ID: "p.T.M", Kind: KindFunc, Name: "T.M", Parent: "p", Recv: "T"},
+			{ID: "p.F", Kind: KindFunc, Name: "F", Parent: "p"},
+		},
+		Edges: []Edge{{From: "p.T", To: "p.I", Kind: EdgeImplements}},
+	}
+	d, ok := g.Detail("p.T")
+	if !ok || len(d.Methods) != 1 || d.Methods[0] != "p.T.M" || len(d.Implements) != 1 || d.Implements[0] != "p.I" {
+		t.Fatalf("%+v", d)
+	}
+	if d, _ := g.Detail("p.I"); len(d.ImplementedBy) != 1 || len(d.Methods) != 0 {
+		t.Fatalf("interface %+v", d)
+	}
+	if n, e, m := g.Counts(); n != 5 || e != 1 || m != 0 {
+		t.Errorf("counts %d %d %d", n, e, m)
+	}
+}
