@@ -8,3 +8,5 @@ qtldr-starter.zip
 **/.qtldr/logs/
 # coverage output left by crap4go runs on the fixture
 testdata/ledger/target/
+/bin/
+.env
