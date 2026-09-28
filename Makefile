@@ -1,6 +1,6 @@
 # qtldr — one-word targets; anything longer than a few lines lives in scripts/.
 .DEFAULT_GOAL := help
-.PHONY: help doctor setup build test lint fmt check golden capture demo ci clean
+.PHONY: help doctor setup build test lint fmt check web smoke serve golden capture demo ci clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "; printf "\n\033[1mUsage:\033[0m make \033[36m<target>\033[0m\n\n\033[1mTargets:\033[0m\n"} \
@@ -28,6 +28,15 @@ fmt: ## format all Go code
 check: ## qtldr check on qtldr itself (changed functions; runs their tests)
 	@go run ./cmd/qtldr check --changed
 
+web: ## build the web UI into web/dist (committed, embedded in the binary)
+	@bash scripts/web.sh
+
+smoke: ## Playwright smoke test: serve the fixture, drill to applyTiered
+	@bash scripts/smoke.sh
+
+serve: ## serve the fixture's map on http://127.0.0.1:7777 with --watch
+	@go run ./cmd/qtldr -C testdata/ledger serve --port 7777 --watch --open
+
 golden: ## regenerate testdata/golden (review the git diff after!)
 	@bash scripts/golden.sh
 
@@ -37,7 +46,7 @@ capture: ## re-run crap4go + gocognit on the fixture and save their output
 demo: ## analyze the fixture with coverage; show applyTiered, worst, check
 	@bash scripts/demo.sh
 
-ci: ## everything CI runs: lint, tests, then qtldr check --all on itself
+ci: ## everything CI runs: lint, Go + web tests, dist freshness, qtldr check --all
 	@bash scripts/ci.sh
 
 clean: ## remove bin/, snapshots and crap4go leftovers

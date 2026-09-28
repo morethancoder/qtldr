@@ -30,6 +30,9 @@ make ci         # lint + test + qtldr check --all on itself
 make golden     # regenerate testdata/golden (review the diff!)
 make capture    # re-capture crap4go/gocognit output after changing testdata/ledger
 make demo       # analyze the fixture with coverage, show applyTiered, worst, check
+make web        # type check, unit test and build web/ into web/dist (commit it)
+make serve      # the fixture's map at http://127.0.0.1:7777 (--watch)
+make smoke      # Playwright smoke test on the fixture (artifacts in .playwright/)
 make build      # bin/qtldr
 make clean
 ```
@@ -44,7 +47,7 @@ Direct CLI use: `go run ./cmd/qtldr -C testdata/ledger show <id>` (the fixture h
 - [x] §0 module path chosen (`github.com/morethancoder/qtldr`)
 - [x] M0 skeleton & structure
 - [x] M1 coverage, CRAP, check, hooks
-- [ ] M2 web UI
+- [x] M2 web UI
 - [ ] M3 mutation
 - [ ] M4 agents (MCP)
 - [ ] M5 breadth

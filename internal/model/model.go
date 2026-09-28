@@ -54,6 +54,7 @@ type Node struct {
 	File      string   `json:"file,omitempty"`
 	Line      int      `json:"line,omitempty"`
 	EndLine   int      `json:"end_line,omitempty"`
+	DocLine   int      `json:"doc_line,omitempty"`
 	Exported  *bool    `json:"exported,omitempty"`
 	Recv      string   `json:"recv,omitempty"`
 	PtrRecv   bool     `json:"ptr_recv,omitempty"`

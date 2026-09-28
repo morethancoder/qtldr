@@ -10,6 +10,8 @@ import (
 type system interface {
 	LookPath(name string) (string, error)
 	Output(ctx context.Context, name string, args ...string) (string, error)
+	// Start launches a program without waiting (the browser).
+	Start(args ...string) error
 }
 
 type osSystem struct{}
@@ -20,3 +22,5 @@ func (osSystem) Output(ctx context.Context, name string, args ...string) (string
 	out, err := exec.CommandContext(ctx, name, args...).CombinedOutput()
 	return strings.TrimSpace(string(out)), err
 }
+
+func (osSystem) Start(args ...string) error { return exec.Command(args[0], args[1:]...).Start() }

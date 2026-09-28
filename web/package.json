@@ -1,0 +1,29 @@
+{
+  "name": "qtldr-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p . && vite build",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@shikijs/langs": "4.4.3",
+    "@shikijs/themes": "4.4.3",
+    "@xyflow/react": "12.12.0",
+    "elkjs": "0.12.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "shiki": "4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
+  }
+}

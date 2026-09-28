@@ -23,6 +23,13 @@ func (f fakeSystem) LookPath(name string) (string, error) {
 	return "", errors.New("not found")
 }
 
+func (f fakeSystem) Start(args ...string) error {
+	if _, ok := f.found[args[0]]; ok {
+		return nil
+	}
+	return errors.New("not found")
+}
+
 func (f fakeSystem) Output(_ context.Context, name string, _ ...string) (string, error) {
 	return f.found[name], nil
 }

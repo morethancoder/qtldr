@@ -64,3 +64,24 @@ func TestParse(t *testing.T) {
 		}
 	}
 }
+
+func TestSetString(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{DefaultTOML, strings.Replace(DefaultTOML, `theme = "gruvbox-dark"                     # id`, `theme = "nord"                     # id`, 1)},
+		{"[ui]\nport = 0\n", "[ui]\ntheme = \"nord\"\nport = 0\n"},
+		{"[project]\nbase_ref = \"main\"", "[project]\nbase_ref = \"main\"\n\n[ui]\ntheme = \"nord\"\n"},
+		{"", "\n[ui]\ntheme = \"nord\"\n"},
+		{"[ui]\ntheme = \"a#b\" # c\n[editor]\ntheme = \"x\"\n", "[ui]\ntheme = \"nord\" # c\n[editor]\ntheme = \"x\"\n"},
+		{"[ui]\ntheme = \"a\"\t# tab\n", "[ui]\ntheme = \"nord\"\t# tab\n"},
+		{"[ui]\ntheme = \"a\"\n", "[ui]\ntheme = \"nord\"\n"},
+	}
+	for _, c := range cases {
+		got := SetString(c.in, "ui", "theme", "nord")
+		if got != c.want {
+			t.Errorf("SetString(%q)\n got %q\nwant %q", c.in, got, c.want)
+		}
+		if _, _, err := Parse("x", got); err != nil && c.in == DefaultTOML {
+			t.Errorf("result does not parse: %v", err)
+		}
+	}
+}

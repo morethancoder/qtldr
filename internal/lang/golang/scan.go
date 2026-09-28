@@ -118,11 +118,20 @@ func (s *scanner) addFunc(pkg *packages.Package, file string, fn *ast.FuncDecl) 
 		ID: id, Kind: model.KindFunc, Name: qualifiedName(recv, fn.Name.Name), Parent: model.ID(pkg.PkgPath),
 		File: file, Line: start, EndLine: end, Exported: model.Ptr(fn.Name.IsExported()),
 		Recv: recv, PtrRecv: ptr, Signature: sig, BodyHash: hash, Effects: s.localEffects(pkg.TypesInfo, fn),
+		DocLine: docLine(pkg.Fset, fn),
 	})
 	s.metrics[id] = model.Metrics{
 		CC: model.Ptr(Cyclomatic(fn)), Cognitive: model.Ptr(Cognitive(fn)), LOC: model.Ptr(end - start + 1),
 	}
 	s.addCalls(pkg.TypesInfo, id, fn.Body)
+}
+
+// docLine is the first line of fn's doc comment, or 0.
+func docLine(fset *token.FileSet, fn *ast.FuncDecl) int {
+	if fn.Doc == nil {
+		return 0
+	}
+	return fset.Position(fn.Doc.Pos()).Line
 }
 
 // uniqueID adds a "#file" suffix (then "#file:line") when id is taken, e.g. by

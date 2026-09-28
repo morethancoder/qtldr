@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // fixtureRepo copies testdata/ledger into a new git repository with one
@@ -179,5 +180,52 @@ func TestExplain(t *testing.T) {
 	}
 	if r := runCLI(t, allTools, "explain", "nope"); r.code != 2 || !strings.Contains(r.stderr, "known terms") {
 		t.Fatalf("%+v", r)
+	}
+}
+
+func TestServeStartsAndStops(t *testing.T) {
+	dir := tempModule(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 1500*time.Millisecond)
+	defer cancel()
+	var out, errb bytes.Buffer
+	sys := fakeSystem{found: map[string]string{"open": "", "xdg-open": ""}}
+	e := &env{ctx: ctx, stdout: &out, stderr: &errb, sys: sys}
+	code := run(e, []string{"-C", dir, "serve", "--port", "0", "--watch", "--open"})
+	if code != 0 || !strings.Contains(out.String(), "qtldr is serving") || !strings.Contains(out.String(), "http://127.0.0.1:") {
+		t.Fatalf("code %d\nstdout: %s\nstderr: %s", code, out.String(), errb.String())
+	}
+	if r := runCLI(t, allTools, "-C", dir, "serve", "extra"); r.code != 2 {
+		t.Errorf("serve with args: %+v", r)
+	}
+}
+
+func TestNoteCommands(t *testing.T) {
+	dir := tempModule(t)
+	if r := runCLI(t, allTools, "-C", dir, "note", "add", "a.Big", "x"); r.code != 2 || !strings.Contains(r.stderr, "qtldr analyze") {
+		t.Fatalf("note before analyze: %+v", r)
+	}
+	runCLI(t, allTools, "-C", dir, "analyze", "--quiet")
+	r := runCLI(t, allTools, "-C", dir, "note", "add", "a.Big", "--line", "7", "check", "the", "bounds")
+	if r.code != 0 || !strings.Contains(r.stdout, "Added n_") {
+		t.Fatalf("add: %+v", r)
+	}
+	id := strings.Fields(strings.TrimPrefix(r.stdout, "Added "))[0]
+	r = runCLI(t, allTools, "-C", dir, "note", "list", "Big")
+	if r.code != 0 || !strings.Contains(r.stdout, "a.Big:7") || !strings.Contains(r.stdout, "check the bounds") {
+		t.Fatalf("list: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "note", "resolve", id); r.code != 0 {
+		t.Fatalf("resolve: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "note", "list"); !strings.Contains(r.stdout, "No notes.") {
+		t.Errorf("resolved notes hidden: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "--json", "note", "list", "--all"); !strings.Contains(r.stdout, `"resolved": true`) {
+		t.Errorf("--all: %+v", r)
+	}
+	for _, args := range [][]string{{"note"}, {"note", "zap"}, {"note", "add", "a.Big"}, {"note", "resolve"}, {"note", "resolve", "n_nope"}, {"note", "add", "a.Big", "--line", "99", "x"}} {
+		if r := runCLI(t, allTools, append([]string{"-C", dir}, args...)...); r.code != 2 {
+			t.Errorf("%v: %+v", args, r)
+		}
 	}
 }

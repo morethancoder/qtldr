@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/morethancoder/qtldr/internal/argv"
 	"github.com/morethancoder/qtldr/internal/config"
 )
 
@@ -63,7 +64,7 @@ func Run(ctx context.Context, root string, cfg config.Coverage, pkgs []string, p
 // {profile} and {packages}. coverpkg "module" adds -coverpkg=./... before the
 // packages.
 func BuildArgs(template, coverpkg, profile string, pkgs []string) ([]string, error) {
-	words, err := splitWords(template)
+	words, err := argv.Split(template)
 	if err != nil {
 		return nil, fmt.Errorf("[coverage].command: %w", err)
 	}
@@ -82,63 +83,6 @@ func BuildArgs(template, coverpkg, profile string, pkgs []string) ([]string, err
 		}
 	}
 	return args, nil
-}
-
-// splitWords splits on spaces, honoring single and double quotes.
-func splitWords(s string) ([]string, error) {
-	var sp splitter
-	for _, r := range s {
-		sp.feed(r)
-	}
-	if sp.quote != 0 {
-		return nil, fmt.Errorf("unclosed %c quote in %q", sp.quote, s)
-	}
-	sp.flush()
-	if len(sp.words) == 0 {
-		return nil, errors.New("command is empty")
-	}
-	return sp.words, nil
-}
-
-// splitter is the state of splitWords.
-type splitter struct {
-	words  []string
-	cur    strings.Builder
-	quote  rune
-	inWord bool
-}
-
-func (sp *splitter) feed(r rune) {
-	if sp.quote != 0 {
-		sp.feedQuoted(r)
-		return
-	}
-	switch {
-	case r == '"' || r == '\'':
-		sp.quote, sp.inWord = r, true
-	case r == ' ' || r == '\t':
-		sp.flush()
-	default:
-		sp.cur.WriteRune(r)
-		sp.inWord = true
-	}
-}
-
-// feedQuoted handles a rune inside quotes.
-func (sp *splitter) feedQuoted(r rune) {
-	if r == sp.quote {
-		sp.quote = 0
-		return
-	}
-	sp.cur.WriteRune(r)
-}
-
-func (sp *splitter) flush() {
-	if sp.inWord {
-		sp.words = append(sp.words, sp.cur.String())
-		sp.cur.Reset()
-		sp.inWord = false
-	}
 }
 
 var failLine = regexp.MustCompile(`(?m)^FAIL\t(\S+)`)

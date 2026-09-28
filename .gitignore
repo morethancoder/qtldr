@@ -15,3 +15,4 @@ testdata/ledger/target/
 .qtldr/focus.json
 .qtldr/cache/
 .qtldr/logs/
+.playwright-mcp/

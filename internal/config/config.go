@@ -61,11 +61,11 @@ type Mutation struct {
 
 // Thresholds are the limits used by `qtldr check` and UI problem chips.
 type Thresholds struct {
-	CrapMax       float64  `toml:"crap_max"`
-	CognitiveMax  int      `toml:"cognitive_max"`
-	CoverageMin   float64  `toml:"coverage_min"`
-	MutationMin   float64  `toml:"mutation_min"`
-	CriticalPaths []string `toml:"critical_paths"`
+	CrapMax       float64  `toml:"crap_max" json:"crap_max"`
+	CognitiveMax  int      `toml:"cognitive_max" json:"cognitive_max"`
+	CoverageMin   float64  `toml:"coverage_min" json:"coverage_min"`
+	MutationMin   float64  `toml:"mutation_min" json:"mutation_min"`
+	CriticalPaths []string `toml:"critical_paths" json:"critical_paths"`
 }
 
 // Purity overrides the purity heuristic.
@@ -192,4 +192,65 @@ func (c Config) validate() error {
 		return errors.New(`editor.preset = "custom" needs editor.command, e.g. "nvim +{line} {file}"`)
 	}
 	return nil
+}
+
+// SetString sets key = "value" inside [table] of TOML text, keeping every
+// other line and comment. The key is added after the table header when
+// missing, and the table is appended when missing.
+func SetString(text, table, key, value string) string {
+	lines := strings.Split(text, "\n")
+	start, end := tableRange(lines, table)
+	assign := fmt.Sprintf("%s = %q", key, value)
+	if start < 0 {
+		if text != "" && !strings.HasSuffix(text, "\n") {
+			text += "\n"
+		}
+		return text + "\n[" + table + "]\n" + assign + "\n"
+	}
+	for i := start + 1; i < end; i++ {
+		if k, _, ok := strings.Cut(strings.TrimSpace(lines[i]), "="); ok && strings.TrimSpace(k) == key {
+			lines[i] = assign + trailingComment(lines[i])
+			return strings.Join(lines, "\n")
+		}
+	}
+	lines = append(lines[:start+1], append([]string{assign}, lines[start+1:]...)...)
+	return strings.Join(lines, "\n")
+}
+
+// tableRange returns the header index of [table] and the index where the
+// next table starts (or len(lines)).
+func tableRange(lines []string, table string) (int, int) {
+	start := -1
+	for i, l := range lines {
+		t := strings.TrimSpace(l)
+		if !strings.HasPrefix(t, "[") {
+			continue
+		}
+		if start >= 0 {
+			return start, i
+		}
+		if strings.HasPrefix(t, "["+table+"]") {
+			start = i
+		}
+	}
+	return start, len(lines)
+}
+
+// trailingComment keeps an aligned "# ..." comment after a value (a '#'
+// inside a quoted value is not a comment).
+func trailingComment(line string) string {
+	inQuote := false
+	for i, r := range line {
+		switch {
+		case r == '"':
+			inQuote = !inQuote
+		case r == '#' && !inQuote:
+			j := i
+			for j > 0 && (line[j-1] == ' ' || line[j-1] == '\t') {
+				j--
+			}
+			return line[j:]
+		}
+	}
+	return ""
 }

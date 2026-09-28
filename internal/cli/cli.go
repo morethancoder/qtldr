@@ -70,6 +70,8 @@ func commands() []command {
 		{name: "check", args: "[--changed | --all] [--fast] [--files-from-stdin] [ids or files...]", summary: "pass/fail report against the thresholds; exit 1 on a breach", run: runCheck, flags: checkFlags},
 		{name: "show", args: "<id>", summary: "everything about one package, function or type", run: runShow},
 		{name: "worst", args: "[--metric crap|coverage|mutation|cognitive|cc] [-n 10]", summary: "rank functions by a metric", run: runWorst, flags: worstFlags},
+		{name: "serve", args: "[--open] [--port N] [--watch]", summary: "web UI on 127.0.0.1", run: runServe, flags: serveFlags},
+		{name: "note", args: "add <id> [--line N] <text> | list [id] | resolve <note-id>", summary: "code notes for people and agents", run: runNote, flags: noteFlags},
 		{name: "explain", args: "[term]", summary: "what a metric means (same text as the UI tooltips)", run: runExplain},
 		{name: "hook", args: "install [--claude] [--git]", summary: "run qtldr check from Claude Code or git pre-push", run: runHook, flags: hookFlags},
 	}
