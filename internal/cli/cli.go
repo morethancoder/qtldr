@@ -67,6 +67,7 @@ func commands() []command {
 	return []command{
 		{name: "init", summary: "write .qtldr.toml, add .gitignore rules, run doctor", run: runInit},
 		{name: "version", summary: "print the qtldr version", run: runVersion},
+		{name: "upgrade", args: "[--check]", summary: "install the latest qtldr release with go install", run: runUpgrade, flags: upgradeFlags},
 		{name: "doctor", summary: "check go, git, gremlins and the editor command", run: runDoctor},
 		{name: "analyze", args: "[pkgs...] [--coverage] [--mutate] [--changed]", summary: "scan structure and complexity (and run tests with --coverage); write the snapshot", run: runAnalyze, flags: analyzeFlags},
 		{name: "check", args: "[--changed | --all] [--fast] [--files-from-stdin] [ids or files...]", summary: "pass/fail report against the thresholds; exit 1 on a breach", run: runCheck, flags: checkFlags},

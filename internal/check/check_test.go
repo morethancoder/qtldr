@@ -160,6 +160,56 @@ func TestMarkdownNeverExceedsLimit(t *testing.T) {
 	}
 }
 
+// A large report (a whole real module) must not print a table header with no
+// rows, and cut "not measured" lines are summed up per metric.
+func TestMarkdownSummarizesCutSections(t *testing.T) {
+	var r Report
+	for i := range 300 {
+		name := fmt.Sprintf("p.f%d", i)
+		r.Functions = append(r.Functions, Row{Name: name})
+		r.Breaches = append(r.Breaches, Breach{Kind: KindCRAP, Name: name, Value: 9, Limit: 8, Hint: "h"})
+		metric := KindMutation
+		if i%100 == 0 {
+			metric = KindCRAP
+		}
+		r.NotMeasured = append(r.NotMeasured, Missing{Name: name, Metric: metric, Reason: "r " + name})
+	}
+	md := Markdown(r)
+	if n := strings.Count(md, "\n"); n > MaxLines {
+		t.Fatalf("%d lines", n)
+	}
+	for _, want := range []string{
+		"### Functions\n- 300 functions, too many to list here: run qtldr worst, or add --json for all of them\n",
+		"### Not measured\n- 3 functions: coverage missing or stale (run: qtldr analyze --coverage)\n- 297 functions: mutation not run, or no mutant could run (run: qtldr mutate)\n",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("missing %q in:\n%s", want, md)
+		}
+	}
+	if strings.Contains(md, "| function |") {
+		t.Errorf("empty table printed:\n%s", md)
+	}
+}
+
+// A table that only slightly overflows keeps its rows and says how many were
+// cut; a short not-measured list is printed as is.
+func TestMarkdownCutsTableRows(t *testing.T) {
+	var r Report
+	for i := range 70 {
+		r.Functions = append(r.Functions, Row{Name: fmt.Sprintf("p.f%d", i)})
+	}
+	r.NotMeasured = []Missing{{Name: "p.f1", Metric: KindMutation, Reason: "mutation not run"}}
+	md := Markdown(r)
+	for _, want := range []string{"| p.f0 |", "- … and ", "- p.f1 — mutation not run"} {
+		if !strings.Contains(md, want) {
+			t.Errorf("missing %q in:\n%s", want, md)
+		}
+	}
+	if n := strings.Count(md, "\n"); n > MaxLines {
+		t.Fatalf("%d lines", n)
+	}
+}
+
 func TestNotesAndGenericCoverageHint(t *testing.T) {
 	g := fixture()
 	m := g.Metrics["m/p.tiered"]

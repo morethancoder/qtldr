@@ -15,7 +15,11 @@ go install github.com/morethancoder/qtldr/cmd/qtldr@latest
 go install github.com/go-gremlins/gremlins/cmd/gremlins@latest   # optional, for mutation testing
 ```
 
-One static binary; the web UI is embedded. Go 1.26 or newer.
+One static binary; the web UI is embedded. Go 1.26 or newer. `go install`
+puts it in `$(go env GOBIN)` (default `~/go/bin`), which must be on your PATH.
+
+Upgrade to the newest release with `qtldr upgrade` (`--check` only says whether
+there is one).
 
 ## Quick start
 
@@ -42,6 +46,7 @@ qtldr serve --open --watch  # the map at http://127.0.0.1:<port>
 | `qtldr explain <term>` | What a metric means (same text as the UI tooltips) |
 | `qtldr hook install [--claude] [--git]` | Claude Code hook + `.mcp.json`, and a git pre-push hook |
 | `qtldr provider test <name>` | Check an external language provider ([contract](docs/provider-contract.md)) |
+| `qtldr upgrade [--check]` | Install the latest release with `go install` |
 | `qtldr doctor`, `qtldr init`, `qtldr version` | Setup helpers |
 
 IDs accept the full form (`github.com/acme/ledger/internal/pricing.applyTiered`)

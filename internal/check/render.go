@@ -10,14 +10,16 @@ const MaxLines = 60
 
 // Markdown renders the report in at most MaxLines lines. When it would be
 // longer, the functions table is cut first, then "not measured", then the
-// breaches; every cut section ends with "… and N more".
+// breaches; a cut section ends with "… and N more". A table that would lose
+// every row, and a cut "not measured" list, are summed up in a line or two
+// instead.
 func Markdown(r Report) string {
 	header := []string{title(r)}
 	sections := []section{
 		{keep: 2, lines: breachLines(r)},
-		{keep: 1, lines: notMeasuredLines(r)},
+		{keep: 1, lines: notMeasuredLines(r), summary: notMeasuredSummary(r)},
 		{keep: 1, lines: noteLines(r)},
-		{keep: 3, lines: tableLines(r)},
+		{keep: 3, lines: tableLines(r), summary: tableSummary(r), partial: true},
 	}
 	fit(sections, MaxLines-len(header))
 	out := header
@@ -28,26 +30,44 @@ func Markdown(r Report) string {
 }
 
 type section struct {
-	keep  int // header lines that are never cut
-	lines []string
+	keep    int // header lines that are never cut
+	lines   []string
+	summary []string // replaces everything below the heading when the body is cut
+	partial bool     // cut rows while at least one stays; the summary only replaces an empty body
 }
 
 // fit trims sections, lowest priority last in the slice first, until the
 // total fits budget.
 func fit(ss []section, budget int) {
 	for i := len(ss) - 1; i >= 0 && total(ss) > budget; i-- {
-		over := total(ss) - budget
-		s := &ss[i]
-		body := len(s.lines) - s.keep
-		if body <= 0 {
-			continue
-		}
-		cut := min(body, over+1) // +1 for the "… and N more" line
-		if cut == body && body == 1 {
-			continue
-		}
-		s.lines = append(s.lines[:len(s.lines)-cut], fmt.Sprintf("- … and %d more", cut))
+		ss[i].shrink(total(ss) - budget)
 	}
+}
+
+// shrink removes lines from s to save at least over lines when it can.
+func (s *section) shrink(over int) {
+	body := len(s.lines) - s.keep
+	if body <= 0 {
+		return
+	}
+	cut := min(body, over+1) // +1 for the "… and N more" line
+	if s.summarize(cut == body) {
+		return
+	}
+	if cut == body && body == 1 {
+		return
+	}
+	s.lines = append(s.lines[:len(s.lines)-cut], fmt.Sprintf("- … and %d more", cut))
+}
+
+// summarize swaps the body for the summary when that is shorter and allowed:
+// always for a plain section, only when every row goes for a partial one.
+func (s *section) summarize(allCut bool) bool {
+	if len(s.summary) == 0 || len(s.summary) >= len(s.lines)-1 || (s.partial && !allCut) {
+		return false
+	}
+	s.lines = append(s.lines[:1:1], s.summary...)
+	return true
 }
 
 func total(ss []section) int {
@@ -134,6 +154,10 @@ func intOr(v *int) string {
 	return fmt.Sprint(*v)
 }
 
+func tableSummary(r Report) []string {
+	return []string{fmt.Sprintf("- %s, too many to list here: run qtldr worst, or add --json for all of them", functions(len(r.Functions)))}
+}
+
 func notMeasuredLines(r Report) []string {
 	if len(r.NotMeasured) == 0 {
 		return nil
@@ -143,6 +167,42 @@ func notMeasuredLines(r Report) []string {
 		lines = append(lines, fmt.Sprintf("- %s — %s", m.Name, m.Reason))
 	}
 	return lines
+}
+
+// missingHints says what is missing per metric and what to run, for the
+// summed-up "not measured" section.
+var missingHints = map[string]string{
+	KindCRAP:     "coverage missing or stale (run: qtldr analyze --coverage)",
+	KindMutation: "mutation not run, or no mutant could run (run: qtldr mutate)",
+}
+
+// notMeasuredSummary counts the not-measured functions per metric, in the
+// order the metrics first appear.
+func notMeasuredSummary(r Report) []string {
+	counts := map[string]int{}
+	var order []string
+	for _, m := range r.NotMeasured {
+		if counts[m.Metric] == 0 {
+			order = append(order, m.Metric)
+		}
+		counts[m.Metric]++
+	}
+	lines := make([]string, 0, len(order))
+	for _, metric := range order {
+		hint, ok := missingHints[metric]
+		if !ok {
+			hint = metric + " not measured (add --json for the reasons)"
+		}
+		lines = append(lines, fmt.Sprintf("- %s: %s", functions(counts[metric]), hint))
+	}
+	return lines
+}
+
+func functions(n int) string {
+	if n == 1 {
+		return "1 function"
+	}
+	return fmt.Sprintf("%d functions", n)
 }
 
 func noteLines(r Report) []string {

@@ -16,3 +16,4 @@ testdata/ledger/target/
 .qtldr/cache/
 .qtldr/logs/
 .playwright-mcp/
+.content/
