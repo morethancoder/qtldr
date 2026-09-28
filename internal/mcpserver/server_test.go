@@ -124,7 +124,9 @@ func TestTools(t *testing.T) {
 		{"get_overview", nil, []string{`"module":"github.com/acme/ledger"`, `"riskiest_function":"pricing.BestRule"`, `"top_risks"`, `"glossary"`}},
 		{"get_node", map[string]any{"id": "applyTiered"}, []string{
 			`"crap_target":8`, `"coverage_percent":70.6`, `"mutation_score":63.6`, `"survived":4`,
-			`"uncovered_lines":["tier.go:25–26","tier.go:37–38","tier.go:41","tier.go:43–45"]`,
+			// Later ranges differ by Go version (decisions.md verify #13): 1.26
+			// starts blocks at the `case X:` colon, so it adds lines 40 and 42.
+			`"uncovered_lines":["tier.go:25–26","tier.go:37–38",`,
 			`"at":"tier.go:29","change":">= → >"`,
 			`"verify":"qtldr check pricing.applyTiered"`, `"crap":{"good":`}},
 		{"get_source", map[string]any{"id": "applyTiered"}, []string{`"lines":"18-48"`, `  29 C | \t\tif qty >= t.Floor`, `^ SURVIVED:`, `^ NOT COVERED: Never run by tests if qty <= 0`}},
