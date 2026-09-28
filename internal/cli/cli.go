@@ -66,10 +66,11 @@ func commands() []command {
 	return []command{
 		{name: "init", summary: "write .qtldr.toml, add .gitignore rules, run doctor", run: runInit},
 		{name: "doctor", summary: "check go, git, gremlins and the editor command", run: runDoctor},
-		{name: "analyze", args: "[pkgs...] [--coverage] [--changed]", summary: "scan structure and complexity (and run tests with --coverage); write the snapshot", run: runAnalyze, flags: analyzeFlags},
+		{name: "analyze", args: "[pkgs...] [--coverage] [--mutate] [--changed]", summary: "scan structure and complexity (and run tests with --coverage); write the snapshot", run: runAnalyze, flags: analyzeFlags},
 		{name: "check", args: "[--changed | --all] [--fast] [--files-from-stdin] [ids or files...]", summary: "pass/fail report against the thresholds; exit 1 on a breach", run: runCheck, flags: checkFlags},
 		{name: "show", args: "<id>", summary: "everything about one package, function or type", run: runShow},
 		{name: "worst", args: "[--metric crap|coverage|mutation|cognitive|cc] [-n 10]", summary: "rank functions by a metric", run: runWorst, flags: worstFlags},
+		{name: "mutate", args: "[--func <id>] [--pkg <path>] [--changed] [--force]", summary: "mutation testing; only changed code is re-tested", run: runMutate, flags: mutateFlags},
 		{name: "serve", args: "[--open] [--port N] [--watch]", summary: "web UI on 127.0.0.1", run: runServe, flags: serveFlags},
 		{name: "note", args: "add <id> [--line N] <text> | list [id] | resolve <note-id>", summary: "code notes for people and agents", run: runNote, flags: noteFlags},
 		{name: "explain", args: "[term]", summary: "what a metric means (same text as the UI tooltips)", run: runExplain},

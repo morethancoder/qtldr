@@ -31,6 +31,7 @@ make golden     # regenerate testdata/golden (review the diff!)
 make capture    # re-capture crap4go/gocognit output after changing testdata/ledger
 make demo       # analyze the fixture with coverage, show applyTiered, worst, check
 make web        # type check, unit test and build web/ into web/dist (commit it)
+make mutate     # mutation testing on the fixture (needs gremlins; results committed)
 make serve      # the fixture's map at http://127.0.0.1:7777 (--watch)
 make smoke      # Playwright smoke test on the fixture (artifacts in .playwright/)
 make build      # bin/qtldr
@@ -48,6 +49,6 @@ Direct CLI use: `go run ./cmd/qtldr -C testdata/ledger show <id>` (the fixture h
 - [x] M0 skeleton & structure
 - [x] M1 coverage, CRAP, check, hooks
 - [x] M2 web UI
-- [ ] M3 mutation
+- [x] M3 mutation
 - [ ] M4 agents (MCP)
 - [ ] M5 breadth

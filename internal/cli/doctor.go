@@ -50,7 +50,7 @@ func doctor(e *env, ed config.Editor) error {
 	checks := []toolCheck{
 		e.checkTool("go", true, "install Go from https://go.dev/dl", "version"),
 		e.checkTool("git", true, "install git; qtldr needs it for --changed and churn", "--version"),
-		e.checkTool("gremlins", false, "optional, needed for mutation testing; see https://gremlins.dev", "--version"),
+		e.checkTool("gremlins", false, "optional, needed for qtldr mutate: go install github.com/go-gremlins/gremlins/cmd/gremlins@latest", "--version"),
 		e.checkEditor(ed),
 	}
 	if e.g.json {

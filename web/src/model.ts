@@ -107,6 +107,7 @@ export function packageProblems(ix: Index, pkg: string, th: Thresholds): Problem
     out.push({ text: `${ix.byId.get(m.worst)?.name ?? short(m.worst)} · CRAP ${m.crap_max.toFixed(1)}`, tone: 'orange' })
   }
   if (!mu && funcsOf(ix, pkg).length > 0) out.push({ text: 'mutation not measured yet', tone: 'red' })
+  if (m.mutation_error) out.unshift({ text: 'tests fail: mutation not run', tone: 'red' })
   if (m.coverage_error) out.unshift({ text: 'tests failed: coverage not measured', tone: 'red' })
   return out.slice(0, 2)
 }

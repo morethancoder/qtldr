@@ -14,8 +14,8 @@ check go yes "install from https://go.dev/dl"
 check git yes "install git"
 check crap4go yes "run: make setup"
 check gocognit yes "run: make setup"
-check gremlins no "needed from M3 (mutation); see https://gremlins.dev"
-check node no "needed from M2 (web UI); install Node LTS"
+check gremlins no "needed for qtldr mutate; run: make setup"
+check node no "needed to rebuild the web UI (make web); install Node LTS"
 
 step "qtldr doctor"
 go run ./cmd/qtldr doctor || missing=1

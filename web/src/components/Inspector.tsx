@@ -13,7 +13,7 @@ export interface InspectorActions {
   copyPrompt: () => void
   send: (message: string) => void
   openIn: (editor: string) => void
-  refresh: (id: string, coverage: boolean) => void
+  refresh: (id: string, coverage: boolean, mutation?: boolean) => void
   addNote: (text: string) => Promise<boolean>
 }
 
@@ -59,7 +59,10 @@ export function Inspector(p: Props) {
         </div>
       )}
       {spec.list}
-      <Actions {...p} node={node} primary={spec.primary} />
+      {(m.coverage_error || m.mutation_error) && (
+        <div className="sub">{[m.coverage_error && `Coverage: ${m.coverage_error}`, m.mutation_error && `Mutation: ${m.mutation_error}`].filter(Boolean).join(' · ')}</div>
+      )}
+      <Actions {...p} node={node} primary={spec.primary} secondary={spec.secondary} />
     </aside>
   )
 }
@@ -84,6 +87,7 @@ interface Spec {
   rows: RowSpec[]
   list?: ReactNode
   primary?: { label: string; run: () => void }
+  secondary?: { label: string; run: () => void }
 }
 
 function describe(p: Props, node: QNode, m: Metrics): Spec {
@@ -135,6 +139,7 @@ function packageSpec(p: Props, node: QNode, m: Metrics): Spec {
     primary: p.level === 0
       ? { label: 'Open package', run: () => p.actions.open(node.id) }
       : { label: 'Run coverage for this package', run: () => p.actions.refresh(node.id, true) },
+    secondary: p.level === 1 ? { label: 'Run mutation for this package', run: () => p.actions.refresh(node.id, false, true) } : undefined,
   }
 }
 
@@ -163,7 +168,7 @@ function funcSpec(p: Props, node: QNode, m: Metrics): Spec {
     ],
     list: survivorList(p, node, m),
     primary: p.level === 2 && node.id === p.context
-      ? { label: 'Re-run coverage for this function', run: () => p.actions.refresh(node.id, true) }
+      ? { label: 'Re-run mutation for this function', run: () => p.actions.refresh(node.id, false, true) }
       : { label: 'Show code', run: () => p.actions.open(node.id) },
   }
 }
@@ -207,13 +212,14 @@ function List({ title, items }: { title: string; items: Item[] }) {
   )
 }
 
-function Actions(p: Props & { node: QNode; primary?: Spec['primary'] }) {
+function Actions(p: Props & { node: QNode; primary?: Spec['primary']; secondary?: Spec['secondary'] }) {
   const [message, setMessage] = useState('')
   const [note, setNote] = useState('')
   const hasFile = p.node.kind === 'func' || p.node.kind === 'type'
   return (
     <div className="actions">
       {p.primary && <button type="button" className="primary" disabled={p.busy} onClick={p.primary.run}>{p.primary.label}</button>}
+      {p.secondary && <button type="button" className="small-btn" disabled={p.busy} onClick={p.secondary.run}>{p.secondary.label}</button>}
       {hasFile && p.config.editors.length > 0 && (
         <div className="openin">
           <span className="label">Open in</span>

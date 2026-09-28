@@ -1,0 +1,92 @@
+Starting...
+Gathering coverage... done in 2.85161775s
+ NOT COVERED CONDITIONALS_NEGATION at cmd/ledgerd/main.go:15:51
+ NOT COVERED CONDITIONALS_NEGATION at cmd/ledgerd/main.go:22:9
+      KILLED CONDITIONALS_NEGATION at cmd/ledgerd/main.go:31:38
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:51:9
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:81:9
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:65:9
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:93:15
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:77:9
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:56:9
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:89:18
+      KILLED CONDITIONALS_NEGATION at internal/httpapi/httpapi.go:61:9
+      KILLED ARITHMETIC_BASE at internal/money/money.go:16:41
+       LIVED CONDITIONALS_BOUNDARY at internal/money/money.go:20:7
+      KILLED CONDITIONALS_NEGATION at internal/money/money.go:20:7
+      KILLED INVERT_NEGATIVES at internal/money/money.go:23:11
+      KILLED ARITHMETIC_BASE at internal/money/money.go:23:11
+      KILLED ARITHMETIC_BASE at internal/money/money.go:27:45
+       LIVED CONDITIONALS_BOUNDARY at internal/money/money.go:31:9
+      KILLED CONDITIONALS_NEGATION at internal/money/money.go:31:9
+      KILLED ARITHMETIC_BASE at internal/money/money.go:34:25
+      KILLED ARITHMETIC_BASE at internal/money/money.go:34:11
+      KILLED ARITHMETIC_BASE at internal/money/money.go:39:12
+      KILLED CONDITIONALS_BOUNDARY at internal/money/money.go:40:10
+      KILLED CONDITIONALS_NEGATION at internal/money/money.go:40:10
+      KILLED ARITHMETIC_BASE at internal/money/money.go:40:17
+      KILLED ARITHMETIC_BASE at internal/money/money.go:41:19
+      KILLED INVERT_NEGATIVES at internal/money/money.go:41:12
+      KILLED ARITHMETIC_BASE at internal/money/money.go:41:12
+      KILLED INVERT_NEGATIVES at internal/money/money.go:43:11
+      KILLED ARITHMETIC_BASE at internal/money/money.go:43:11
+      KILLED ARITHMETIC_BASE at internal/money/money.go:48:16
+      KILLED ARITHMETIC_BASE at internal/money/money.go:49:34
+      KILLED ARITHMETIC_BASE at internal/money/money.go:49:41
+      KILLED CONDITIONALS_NEGATION at internal/order/order.go:57:10
+      KILLED CONDITIONALS_NEGATION at internal/order/order.go:61:12
+      KILLED CONDITIONALS_BOUNDARY at internal/order/order.go:61:27
+      KILLED CONDITIONALS_NEGATION at internal/order/order.go:61:27
+      KILLED CONDITIONALS_NEGATION at internal/order/order.go:85:14
+ NOT COVERED CONDITIONALS_NEGATION at internal/pricing/apply.go:53:12
+ NOT COVERED CONDITIONALS_NEGATION at internal/pricing/apply.go:53:44
+ NOT COVERED CONDITIONALS_BOUNDARY at internal/pricing/apply.go:56:17
+ NOT COVERED CONDITIONALS_NEGATION at internal/pricing/apply.go:56:17
+      KILLED CONDITIONALS_NEGATION at internal/order/order.go:94:14
+      KILLED CONDITIONALS_NEGATION at internal/pricing/apply.go:10:33
+      KILLED CONDITIONALS_NEGATION at internal/pricing/apply.go:14:12
+      KILLED CONDITIONALS_NEGATION at internal/pricing/apply.go:25:12
+      KILLED CONDITIONALS_BOUNDARY at internal/pricing/apply.go:36:14
+      KILLED CONDITIONALS_NEGATION at internal/pricing/apply.go:36:14
+      KILLED CONDITIONALS_NEGATION at internal/pricing/apply.go:40:20
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/discount.go:7:9
+      KILLED CONDITIONALS_NEGATION at internal/pricing/discount.go:7:9
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/discount.go:7:21
+      KILLED CONDITIONALS_NEGATION at internal/pricing/discount.go:7:21
+      KILLED INVERT_NEGATIVES at internal/pricing/discount.go:10:38
+      KILLED ARITHMETIC_BASE at internal/pricing/discount.go:10:38
+      KILLED CONDITIONALS_BOUNDARY at internal/pricing/flat.go:7:12
+      KILLED CONDITIONALS_NEGATION at internal/pricing/flat.go:7:12
+      KILLED CONDITIONALS_NEGATION at internal/pricing/tier.go:21:16
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/tier.go:24:9
+      KILLED CONDITIONALS_NEGATION at internal/pricing/tier.go:24:9
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/tier.go:29:10
+ NOT COVERED CONDITIONALS_BOUNDARY at internal/pricing/tier.go:43:12
+ NOT COVERED CONDITIONALS_NEGATION at internal/pricing/tier.go:43:12
+      KILLED CONDITIONALS_NEGATION at internal/pricing/tier.go:29:10
+ NOT COVERED CONDITIONALS_NEGATION at internal/store/store.go:42:9
+ NOT COVERED CONDITIONALS_NEGATION at internal/store/store.go:54:9
+ NOT COVERED CONDITIONALS_NEGATION at internal/store/store.go:61:10
+ NOT COVERED CONDITIONALS_NEGATION at internal/store/store.go:73:52
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/tier.go:29:32
+      KILLED CONDITIONALS_NEGATION at internal/pricing/tier.go:29:32
+       LIVED CONDITIONALS_BOUNDARY at internal/pricing/tier.go:36:17
+      KILLED CONDITIONALS_NEGATION at internal/pricing/tier.go:36:17
+      KILLED INVERT_NEGATIVES at internal/pricing/tier.go:39:35
+      KILLED ARITHMETIC_BASE at internal/pricing/tier.go:39:35
+      KILLED ARITHMETIC_BASE at internal/store/store.go:86:32
+      KILLED ARITHMETIC_BASE at internal/store/store.go:86:24
+      KILLED CONDITIONALS_NEGATION at internal/store/store.go:33:41
+       LIVED CONDITIONALS_BOUNDARY at internal/store/store.go:83:8
+      KILLED CONDITIONALS_NEGATION at internal/store/store.go:83:8
+       LIVED CONDITIONALS_BOUNDARY at internal/store/store.go:83:22
+      KILLED CONDITIONALS_NEGATION at internal/store/store.go:83:22
+       LIVED CONDITIONALS_BOUNDARY at internal/store/store.go:83:32
+      KILLED CONDITIONALS_NEGATION at internal/store/store.go:83:32
+      KILLED ARITHMETIC_BASE at internal/store/store.go:86:20
+
+Mutation testing completed in 28 seconds 956 milliseconds
+Killed: 61, Lived: 11, Not covered: 12
+Timed out: 0, Not viable: 0, Skipped: 0
+Test efficacy: 84.72%
+Mutator coverage: 85.71%

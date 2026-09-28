@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "package": "github.com/acme/ledger/internal/order",
+  "engine": "gremlins",
+  "engine_version": "v0.6.0",
+  "ran_at": "2026-09-28T16:18:30Z",
+  "functions": {
+    "github.com/acme/ledger/internal/order.Line.Subtotal": {
+      "body_hash": "sha256:7ef4404243cd5509c2c186ce5f6812b30c4e106e6c932289105b6bc4d1471bd2",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/acme/ledger/internal/order.Merge": {
+      "body_hash": "sha256:fbc2e9ed12833543defcb6b3aec76118e69e6a6fa473327e4aee2a5474e007e0",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/acme/ledger/internal/order.NewLine": {
+      "body_hash": "sha256:133aba34a0c49230702872f10f4b2f2029566ce5279593c2ae743ec25a9491d9",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/acme/ledger/internal/order.Order.Pay": {
+      "body_hash": "sha256:1a8fbba175edfd106f167b81acb7ae1fac413996e92300b2af87dcec5e324bbf",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 14,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/order.Order.Ship": {
+      "body_hash": "sha256:2c56a75f052c87f190dd7ea5fec0e8619123ddc814731fea34cc449221eb26c8",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 14,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/order.Order.Total": {
+      "body_hash": "sha256:b7e9320bf7e929bbeef446eea8d1414baabc5b04f5db1412a54ca07c473df406",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/acme/ledger/internal/order.Order.Validate": {
+      "body_hash": "sha256:41dcb329f1ce23afe15d4abb12662e2da66f7ecf0dd88bd462bf67b97da01600",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 4,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 10,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "== → !="
+        },
+        {
+          "line_offset": 5,
+          "col": 12,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "== → !="
+        },
+        {
+          "line_offset": 5,
+          "col": 27,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003c= → \u003e"
+        },
+        {
+          "line_offset": 5,
+          "col": 27,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "KILLED",
+          "description": "\u003c= → \u003c"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/order.Status.Label": {
+      "body_hash": "sha256:a5e9eb55cef5d9e25fc8f86ad8e612c6aafd467b3d55c46f61a563330abb20a4",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:30Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    }
+  }
+}

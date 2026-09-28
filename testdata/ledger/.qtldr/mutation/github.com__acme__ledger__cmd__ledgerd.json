@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "package": "github.com/acme/ledger/cmd/ledgerd",
+  "engine": "gremlins",
+  "engine_version": "v0.6.0",
+  "ran_at": "2026-09-28T16:18:26Z",
+  "functions": {
+    "github.com/acme/ledger/cmd/ledgerd.addr": {
+      "body_hash": "sha256:712b2b985e4c1bf6619fa02bfeae9c3dccffce6f56a355a1c2ab602ad5efeed4",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:26Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 38,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/acme/ledger/cmd/ledgerd.main": {
+      "body_hash": "sha256:b51462a94f7c5e476feee11e64dcf6ec5f4df24b56d90a0d048bc158169ee419",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:26Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 1,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 51,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/acme/ledger/cmd/ledgerd.run": {
+      "body_hash": "sha256:b0c33fff18777ffb212882d0432463f871978f9215242e3bc2538ce9a52b6423",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:26Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 1,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 2,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        }
+      ]
+    }
+  }
+}

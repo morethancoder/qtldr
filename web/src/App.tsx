@@ -225,8 +225,10 @@ export function App() {
       if (!sel) return
       api.open(sel, line, editor).then((r) => toast(`Ran: ${r.command.join(' ')}`)).catch((e: unknown) => toast(String(e)))
     },
-    refresh: (id, coverage) => {
-      api.refresh(id, coverage).then(() => toast(coverage ? 'Running coverage…' : 'Refreshing…')).catch((e: unknown) => toast(String(e)))
+    refresh: (id, coverage, mutation = false) => {
+      api.refresh(id, coverage, mutation)
+        .then(() => toast(mutation ? 'Running mutation testing… only this package is re-tested.' : coverage ? 'Running coverage…' : 'Refreshing…'))
+        .catch((e: unknown) => toast(String(e)))
     },
     addNote: async (text) => {
       if (view.level !== 2 || line === undefined) return false

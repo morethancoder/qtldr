@@ -15,9 +15,10 @@ test('drill from the module to applyTiered', async ({ page }) => {
   await tiered.dblclick()
   await expect(page).toHaveURL(/#\/func\//)
   await expect(page.getByRole('region', { name: /Source of/ })).toContainText('func applyTiered(')
-  const annotations = page.locator('.badge')
-  await expect(annotations.first()).toBeVisible()
-  await expect(page.locator('.badge', { hasText: /SURVIVED|NOT COVERED/ }).first()).toBeVisible()
+  // The fixture's mutation results are committed (testdata/ledger/.qtldr/mutation).
+  await expect(page.locator('.badge', { hasText: 'SURVIVED' }).first()).toBeVisible()
+  await expect(page.locator('.badge', { hasText: 'NOT COVERED' }).first()).toBeVisible()
+  await expect(page.getByRole('complementary', { name: 'Inspector' })).toContainText('Surviving mutants')
 
   await page.keyboard.press('Escape')
   await expect(page).toHaveURL(/#\/pkg\//)

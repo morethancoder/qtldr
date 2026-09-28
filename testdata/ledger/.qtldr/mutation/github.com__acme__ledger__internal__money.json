@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "package": "github.com/acme/ledger/internal/money",
+  "engine": "gremlins",
+  "engine_version": "v0.6.0",
+  "ran_at": "2026-09-28T16:18:42Z",
+  "functions": {
+    "github.com/acme/ledger/internal/money.Add": {
+      "body_hash": "sha256:2a81164f4f0a76008fa9910a3b52e7a9aa1e0ad2e4949788dfb24ff2c4d962fc",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 0,
+          "col": 41,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "+ → -"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/money.Amount.String": {
+      "body_hash": "sha256:b00028ee205a674cc0a1ccec5dac1bee79cdbc067f75d9d3d457552086b9e874",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 3,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 16,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "/ → *"
+        },
+        {
+          "line_offset": 2,
+          "col": 34,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "/ → *"
+        },
+        {
+          "line_offset": 2,
+          "col": 41,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "% → *"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/money.Mul": {
+      "body_hash": "sha256:afc4e8b4991f3d353c0721237e71b913d1efcdb304f7777bb660a77baad4b548",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 0,
+          "col": 45,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "* → /"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/money.Percent": {
+      "body_hash": "sha256:30cdc7f398637fefb2185255ef0ef30dab69e9d94521b749b1677756be019af7",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 3,
+        "survived": 1,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003c= → \u003e"
+        },
+        {
+          "line_offset": 1,
+          "col": 9,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "LIVED",
+          "description": "\u003c= → \u003c"
+        },
+        {
+          "line_offset": 4,
+          "col": 11,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "* → /"
+        },
+        {
+          "line_offset": 4,
+          "col": 25,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "/ → *"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/money.Round": {
+      "body_hash": "sha256:e2efbfb583b8a02022b53837fed935334fa6410d8cb398f2173739fe72c897d4",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 9,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 12,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "% → *"
+        },
+        {
+          "line_offset": 2,
+          "col": 10,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "KILLED",
+          "description": "\u003e= → \u003e"
+        },
+        {
+          "line_offset": 2,
+          "col": 10,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003e= → \u003c"
+        },
+        {
+          "line_offset": 2,
+          "col": 17,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "/ → *"
+        },
+        {
+          "line_offset": 3,
+          "col": 12,
+          "type": "INVERT_NEGATIVES",
+          "status": "KILLED",
+          "description": "- → +"
+        },
+        {
+          "line_offset": 3,
+          "col": 12,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "- → +"
+        },
+        {
+          "line_offset": 3,
+          "col": 19,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "+ → -"
+        },
+        {
+          "line_offset": 5,
+          "col": 11,
+          "type": "INVERT_NEGATIVES",
+          "status": "KILLED",
+          "description": "- → +"
+        },
+        {
+          "line_offset": 5,
+          "col": 11,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "- → +"
+        }
+      ]
+    },
+    "github.com/acme/ledger/internal/money.Sub": {
+      "body_hash": "sha256:8b273265798ee0d78ad68a0c91c44dc89be392893ee67bc731b352035579589a",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-28T16:18:42Z",
+      "counts": {
+        "killed": 3,
+        "survived": 1,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 7,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003e → \u003c="
+        },
+        {
+          "line_offset": 1,
+          "col": 7,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "LIVED",
+          "description": "\u003e → \u003e="
+        },
+        {
+          "line_offset": 4,
+          "col": 11,
+          "type": "INVERT_NEGATIVES",
+          "status": "KILLED",
+          "description": "- → +"
+        },
+        {
+          "line_offset": 4,
+          "col": 11,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "- → +"
+        }
+      ]
+    }
+  }
+}

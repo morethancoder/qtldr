@@ -133,12 +133,20 @@ func metricRows(n model.Node, m model.Metrics) []row {
 		if m.Worst != "" {
 			rows = append(rows, row{"Riskiest", check.Short(m.Worst)})
 		}
-		if m.CoverageError != "" {
-			rows = append(rows, row{"Coverage error", m.CoverageError})
-		}
-		return rows
+		return append(rows, errorRows(m)...)
 	}
 	return nil
+}
+
+func errorRows(m model.Metrics) []row {
+	var rows []row
+	if m.CoverageError != "" {
+		rows = append(rows, row{"Coverage error", m.CoverageError})
+	}
+	if m.MutationError != "" {
+		rows = append(rows, row{"Mutation error", m.MutationError})
+	}
+	return rows
 }
 
 func printRows(w io.Writer, rows []row) {

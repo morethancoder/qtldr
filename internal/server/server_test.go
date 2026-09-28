@@ -18,6 +18,7 @@ import (
 
 	"github.com/morethancoder/qtldr/internal/config"
 	"github.com/morethancoder/qtldr/internal/focus"
+	"github.com/morethancoder/qtldr/internal/mutate"
 )
 
 type testServer struct {
@@ -359,5 +360,43 @@ func TestRelevant(t *testing.T) {
 	}
 	if len(added) != 1 || added[0] != sub {
 		t.Errorf("new directory not watched: %v", added)
+	}
+}
+
+// replayEngine returns the real Gremlins report captured on the fixture.
+type replayEngine struct{ t *testing.T }
+
+func (replayEngine) Name() string                   { return "gremlins" }
+func (replayEngine) Version(context.Context) string { return "v0.6.0" }
+func (r replayEngine) Run(_ context.Context, _ string, t mutate.Target, _ config.Mutation) ([]mutate.FileMutant, []byte, error) {
+	b, err := os.ReadFile(filepath.Join("..", "..", "testdata", "gremlins", "ledger-pricing.json"))
+	if err != nil {
+		return nil, nil, err
+	}
+	ms, err := mutate.ParseReport(b, t.Dir)
+	return ms, nil, err
+}
+
+func TestRefreshMutation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("runs go test")
+	}
+	ts := start(t, nil)
+	ts.opt.Mutator = replayEngine{t}
+	events := ts.subscribe(t)
+	if code, body := ts.do(t, "POST", "/api/refresh", `{"id":"applyTiered","mutation":true}`, ts.auth()); code != 202 {
+		t.Fatalf("refresh: %d %s", code, body)
+	}
+	if got := waitEvent(t, events, "toast"); !strings.Contains(got, "Mutation finished: 19 killed, 6 survived") {
+		t.Fatalf("toast: %s", got)
+	}
+	m := ts.snapshot().Metrics["github.com/acme/ledger/internal/pricing.applyTiered"]
+	if m.Mutation == nil || m.Mutation.Survived != 4 || m.Grades.Mutation == nil {
+		t.Fatalf("applyTiered mutation: %+v", m.Mutation)
+	}
+	_, src := ts.do(t, "GET", "/api/source?id=applyTiered", "", nil)
+	if !strings.Contains(src, `"kind":"survived","title":"2 mutants survived","detail":">= → >   ·   > → >="`) &&
+		!strings.Contains(src, `"title":"2 mutants survived"`) {
+		t.Errorf("survivor annotations: %s", src)
 	}
 }

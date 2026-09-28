@@ -21,6 +21,7 @@ import (
 	"github.com/morethancoder/qtldr/internal/analysis"
 	"github.com/morethancoder/qtldr/internal/config"
 	"github.com/morethancoder/qtldr/internal/model"
+	"github.com/morethancoder/qtldr/internal/mutate"
 )
 
 // TokenHeader carries the per-run token on mutating requests.
@@ -35,9 +36,10 @@ type Options struct {
 	Assets fs.FS
 	// Log receives one line per notable event; may be nil.
 	Log io.Writer
-	// Now and Run are replaced in tests.
-	Now func() time.Time
-	Run func(ctx context.Context, opt analysis.Options) (analysis.Result, error)
+	// Now, Run and Mutator are replaced in tests.
+	Now     func() time.Time
+	Run     func(ctx context.Context, opt analysis.Options) (analysis.Result, error)
+	Mutator mutate.Mutator
 }
 
 // Server holds the latest snapshot and the connected event streams.

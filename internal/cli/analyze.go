@@ -30,7 +30,8 @@ type analyzeSummary struct {
 
 func analyzeFlags(fs *flag.FlagSet) {
 	fs.Bool("coverage", false, "run the tests with coverage (slower)")
-	fs.Bool("changed", false, "with --coverage: only test packages with functions changed since [project].base_ref")
+	fs.Bool("mutate", false, "run mutation testing (slow; unchanged functions keep their results)")
+	fs.Bool("changed", false, "with --coverage/--mutate: only packages with functions changed since [project].base_ref")
 }
 
 func runAnalyze(e *env, fs *flag.FlagSet, args []string) error {
@@ -38,7 +39,7 @@ func runAnalyze(e *env, fs *flag.FlagSet, args []string) error {
 	if err != nil {
 		return err
 	}
-	opt := analysis.Options{Root: root, Config: cfg, Patterns: args, Coverage: boolFlag(fs, "coverage"), Progress: e.progressLine}
+	opt := analysis.Options{Root: root, Config: cfg, Patterns: args, Coverage: boolFlag(fs, "coverage"), Mutate: boolFlag(fs, "mutate"), Progress: e.progressLine}
 	if boolFlag(fs, "changed") {
 		opt.Scope = changedScope(e, root, cfg.Project.BaseRef)
 	}
@@ -46,6 +47,9 @@ func runAnalyze(e *env, fs *flag.FlagSet, args []string) error {
 	res, err := analysis.Run(e.ctx, opt)
 	if err != nil {
 		return err
+	}
+	if res.Mutation != nil && !e.g.json {
+		printMutation(e, *res.Mutation)
 	}
 	sum := summarize(res, store.SnapshotPath(root), time.Since(start))
 	sum.Coverage = opt.Coverage

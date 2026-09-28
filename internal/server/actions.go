@@ -14,6 +14,7 @@ import (
 	"github.com/morethancoder/qtldr/internal/editor"
 	"github.com/morethancoder/qtldr/internal/focus"
 	"github.com/morethancoder/qtldr/internal/model"
+	"github.com/morethancoder/qtldr/internal/mutate"
 	"github.com/morethancoder/qtldr/internal/notes"
 )
 
@@ -194,10 +195,6 @@ func (s *Server) handleRefresh(w http.ResponseWriter, r *http.Request) {
 		apiError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if req.Mutation {
-		apiError(w, http.StatusNotImplemented, "mutation testing is not available in this build yet; run `qtldr mutate` when it is")
-		return
-	}
 	if !s.busy.CompareAndSwap(false, true) {
 		apiError(w, http.StatusConflict, "an analysis is already running")
 		return
@@ -213,6 +210,7 @@ func (s *Server) handleRefresh(w http.ResponseWriter, r *http.Request) {
 // toast.
 func (s *Server) refresh(ctx context.Context, req refreshRequest) {
 	opt := analysis.Options{Root: s.opt.Root, Config: s.config(), Coverage: req.Coverage, Now: s.opt.Now(),
+		Mutate: req.Mutation, MutateForce: req.Mutation, Mutator: s.opt.Mutator,
 		Progress: func(msg string) { s.Publish("progress", map[string]any{"message": msg, "done": false}) }}
 	if req.ID != "" {
 		opt.Scope = func(g model.Graph) ([]model.ID, error) { return scopeOf(g, req.ID) }
@@ -224,14 +222,7 @@ func (s *Server) refresh(ctx context.Context, req refreshRequest) {
 		return
 	}
 	s.setSnapshot(res.Snapshot)
-	switch {
-	case len(res.Failed) > 0:
-		s.toast("Coverage finished; tests failed in %d packages (output in %s)", len(res.Failed), res.LogPath)
-	case req.Coverage:
-		s.toast("Coverage finished")
-	default:
-		s.toast("Refreshed")
-	}
+	s.toast("%s", refreshMessage(req, res))
 }
 
 // scopeOf turns a node ID into the functions to (re)measure.
@@ -274,4 +265,27 @@ func newlyStale(prev, next model.Snapshot) []model.ID {
 
 func isStale(m model.Metrics) bool {
 	return (m.Coverage != nil && m.Coverage.Stale && m.CC != nil) || (m.Mutation != nil && m.Mutation.Stale)
+}
+
+func refreshMessage(req refreshRequest, res analysis.Result) string {
+	switch {
+	case len(res.Failed) > 0:
+		return fmt.Sprintf("Coverage finished; tests failed in %d packages (output in %s)", len(res.Failed), res.LogPath)
+	case req.Mutation && res.Mutation != nil:
+		return mutationMessage(*res.Mutation)
+	case req.Coverage:
+		return "Coverage finished"
+	}
+	return "Refreshed"
+}
+
+func mutationMessage(rep mutate.Report) string {
+	killed, lived := 0, 0
+	for _, p := range rep.Packages {
+		if p.Status == "failed" {
+			return "Mutation not run for " + check.Short(p.Pkg) + ": " + p.Message
+		}
+		killed, lived = killed+p.Killed, lived+p.Lived
+	}
+	return fmt.Sprintf("Mutation finished: %d killed, %d survived", killed, lived)
 }

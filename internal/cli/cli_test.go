@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/morethancoder/qtldr/internal/config"
+	"github.com/morethancoder/qtldr/internal/mutate"
 )
 
 // fakeSystem finds only the tools in found.
@@ -252,5 +253,45 @@ func TestCheckExplicitTargets(t *testing.T) {
 	}
 	if r := runCLI(t, allTools, "-C", dir, "hook", "uninstall"); r.code != 2 {
 		t.Errorf("hook usage: %+v", r)
+	}
+}
+
+func TestMutateCommand(t *testing.T) {
+	if testing.Short() {
+		t.Skip("runs go test")
+	}
+	dir := coverageModule(t) // package b's tests fail
+	r := runCLI(t, allTools, "-C", dir, "mutate", "--pkg", "b")
+	if r.code != 2 || !strings.Contains(r.stdout, "b  ") || !strings.Contains(r.stdout, "tests fail before mutation") {
+		t.Fatalf("pre-flight must block b: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "show", "example.com/m/b"); !strings.Contains(r.stdout, "Mutation error   tests fail before mutation") {
+		t.Errorf("show b: %s", r.stdout)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "mutate", "--func", "Nope"); r.code != 2 {
+		t.Errorf("unknown func: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "mutate", "extra"); r.code != 2 {
+		t.Errorf("args: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "--json", "mutate", "--pkg", "./b"); !strings.Contains(r.stdout, `"status": "failed"`) {
+		t.Errorf("json: %+v", r)
+	}
+}
+
+func TestPackageLine(t *testing.T) {
+	cases := []struct {
+		p    mutate.PackageReport
+		want string
+	}{
+		{mutate.PackageReport{Status: "ran", Killed: 3, Lived: 1, NotCov: 2, Seconds: 1.5}, "75% score · 3 killed, 1 survived, 2 not covered · 1.5s"},
+		{mutate.PackageReport{Status: "ran"}, "— score · 0 killed, 0 survived, 0 not covered · 0.0s"},
+		{mutate.PackageReport{Status: "skipped", Message: "over max"}, "skipped: over max"},
+		{mutate.PackageReport{Status: "up to date"}, "up to date"},
+	}
+	for _, c := range cases {
+		if got := packageLine(c.p); got != c.want {
+			t.Errorf("%+v: %q", c.p, got)
+		}
 	}
 }

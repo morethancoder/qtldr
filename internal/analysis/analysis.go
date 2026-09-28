@@ -19,6 +19,7 @@ import (
 	"github.com/morethancoder/qtldr/internal/lang/golang"
 	"github.com/morethancoder/qtldr/internal/metrics"
 	"github.com/morethancoder/qtldr/internal/model"
+	"github.com/morethancoder/qtldr/internal/mutate"
 	"github.com/morethancoder/qtldr/internal/store"
 )
 
@@ -38,6 +39,12 @@ type Options struct {
 	// Scope, when set, picks the functions of interest after the scan; with
 	// Coverage, only their packages' tests run.
 	Scope func(g model.Graph) ([]model.ID, error)
+	// Mutate runs mutation testing for MutatePackages (nil = the scope's
+	// packages, or every package); MutateForce re-tests current results.
+	Mutate         bool
+	MutatePackages []model.ID
+	MutateForce    bool
+	Mutator        mutate.Mutator
 	// Now is the run time (tests pass a fixed one).
 	Now time.Time
 	// Progress receives short progress lines; may be nil.
@@ -53,6 +60,8 @@ type Result struct {
 	Failed []model.ID
 	// Scope is what Options.Scope returned.
 	Scope []model.ID
+	// Mutation is the mutate run's report (with Options.Mutate).
+	Mutation *mutate.Report
 	// LogPath is the coverage log written when tests failed ("" otherwise).
 	LogPath  string
 	Warnings []string
@@ -80,8 +89,44 @@ func Run(ctx context.Context, opt Options) (Result, error) {
 		PurityAllow:    allowIDs(g, opt.Config.Purity.Allow, &res),
 	}
 	addChurn(ctx, opt, &in, &res)
+	if opt.Mutate {
+		if err := runMutation(ctx, opt, metrics.Compute(g, in), &res); err != nil {
+			return res, err
+		}
+	}
+	mutatedAt, err := addMutation(opt.Root, g, &in)
+	if err != nil {
+		return Result{}, err
+	}
 	res.Snapshot = snapshot(metrics.Compute(g, in), gitx.Info(ctx, opt.Root), opt.Now, cache.RanAt)
+	res.Snapshot.Runs.Mutation = mutatedAt
 	return res, store.WriteSnapshot(opt.Root, res.Snapshot)
+}
+
+// runMutation tests the requested packages; g carries CRAP so the riskiest
+// packages go first.
+func runMutation(ctx context.Context, opt Options, g model.Graph, res *Result) error {
+	pkgs := opt.MutatePackages
+	if pkgs == nil && res.Scope != nil {
+		pkgs = append([]model.ID{}, PackagesOf(g, res.Scope)...)
+	}
+	rep, err := mutate.Run(ctx, mutate.Options{
+		Root: opt.Root, Graph: g, Config: opt.Config.Mutation, Scope: pkgs, Force: opt.MutateForce,
+		Engine: opt.Mutator, Progress: opt.Progress,
+	})
+	res.Mutation = &rep
+	return err
+}
+
+// addMutation loads the committed mutation results into in.
+func addMutation(root string, g model.Graph, in *metrics.Inputs) (*time.Time, error) {
+	caches, err := mutate.LoadAll(root)
+	if err != nil {
+		return nil, err
+	}
+	var at *time.Time
+	in.Mutation, in.MutationErrors, at = mutate.Resolve(caches, g)
+	return at, nil
 }
 
 func (o Options) withDefaults() Options {
