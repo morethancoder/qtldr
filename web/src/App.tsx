@@ -51,7 +51,11 @@ function defaultSelection(ix: Index, r: Route): string | undefined {
   return worstPackage(ix)
 }
 
-const levelNames = ['module', 'package', 'function'] as const
+/** focusLevel names what is selected (focus.json "level"). */
+function focusLevel(ix: Index | null, id: string): string {
+  const kind = ix?.byId.get(id)?.kind
+  return kind === 'func' ? 'function' : kind ?? 'module'
+}
 
 export function App() {
   const [snap, setSnap] = useState<Snapshot | null>(null)
@@ -186,10 +190,10 @@ export function App() {
   useEffect(() => {
     if (!sel) return
     const t = window.setTimeout(() => {
-      void api.focus({ id: sel, level: levelNames[view.level], selected_line: line, sent: false }).catch(() => undefined)
+      void api.focus({ id: sel, level: focusLevel(ix, sel), selected_line: line, sent: false }).catch(() => undefined)
     }, 300)
     return () => window.clearTimeout(t)
-  }, [sel, view.level, line])
+  }, [sel, ix, line])
   useEffect(() => {
     if (view.level !== 2) return setSource(null)
     let live = true
@@ -217,7 +221,7 @@ export function App() {
     },
     send: (message) => {
       if (!sel) return
-      api.focus({ id: sel, level: levelNames[view.level], selected_line: line, message, sent: true })
+      api.focus({ id: sel, level: focusLevel(ix, sel), selected_line: line, message, sent: true })
         .then((r) => toast(`Sent. Ask your agent to fix what you're looking at.${r.tmux ? ' The prompt was also typed into tmux.' : ''}${r.tmux_error ? ` tmux: ${r.tmux_error}` : ''}`))
         .catch((e: unknown) => toast(String(e)))
     },

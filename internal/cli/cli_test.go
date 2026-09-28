@@ -295,3 +295,9 @@ func TestPackageLine(t *testing.T) {
 		}
 	}
 }
+
+func TestMCPUsage(t *testing.T) {
+	if r := runCLI(t, allTools, "-C", tempModule(t), "mcp", "extra"); r.code != 2 || !strings.Contains(r.stderr, "mcp takes no arguments") {
+		t.Fatalf("%+v", r)
+	}
+}

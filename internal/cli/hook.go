@@ -50,11 +50,12 @@ func installClaude(e *env, root string) error {
 	if err != nil {
 		return err
 	}
-	if changed {
-		fmt.Fprintf(e.stdout, "Added the qtldr PostToolUse hook to %s.\n", path)
-	} else {
-		fmt.Fprintf(e.stdout, "%s already has the qtldr hook.\n", path)
+	reportInstall(e, path, changed, "the qtldr PostToolUse hook")
+	mcpPath, changed, err := hooks.InstallMCP(root)
+	if err != nil {
+		return err
 	}
+	reportInstall(e, mcpPath, changed, "the qtldr MCP server (qtldr mcp)")
 	fmt.Fprintf(e.stdout, "\nAdd this to CLAUDE.md:\n\n%s\n", hooks.Snippet)
 	return nil
 }
@@ -81,4 +82,12 @@ func installGit(e *env, root string) error {
 func gitOutput(dir string, args ...string) (string, error) {
 	out, err := exec.Command("git", append([]string{"-C", dir}, args...)...).Output()
 	return strings.TrimSpace(string(out)), err
+}
+
+func reportInstall(e *env, path string, changed bool, what string) {
+	if changed {
+		fmt.Fprintf(e.stdout, "Added %s to %s.\n", what, path)
+	} else {
+		fmt.Fprintf(e.stdout, "%s already has %s.\n", path, what)
+	}
 }

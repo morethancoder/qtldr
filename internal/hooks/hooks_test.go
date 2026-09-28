@@ -77,3 +77,34 @@ func TestInstallGit(t *testing.T) {
 		t.Fatalf("foreign hook: err = %v", err)
 	}
 }
+
+func TestMergeMCPConfig(t *testing.T) {
+	out, changed, err := MergeMCPConfig([]byte(`{"mcpServers": {"other": {"command": "x"}}, "extra": 1}`))
+	if err != nil || !changed {
+		t.Fatalf("%v %v", changed, err)
+	}
+	s := string(out)
+	if !strings.Contains(s, `"other"`) || !strings.Contains(s, `"qtldr": {`) || !strings.Contains(s, `"args": [`) ||
+		strings.Index(s, `"mcpServers"`) > strings.Index(s, `"extra"`) {
+		t.Fatalf("merged:\n%s", s)
+	}
+	again, changed, err := MergeMCPConfig(out)
+	if err != nil || changed || string(again) != s {
+		t.Errorf("second merge must be a no-op")
+	}
+	if out, changed, err := MergeMCPConfig(nil); err != nil || !changed || !strings.Contains(string(out), `"command": "qtldr"`) {
+		t.Errorf("empty: %s %v %v", out, changed, err)
+	}
+	for _, bad := range []string{"[]", `{"mcpServers": []}`} {
+		if _, _, err := MergeMCPConfig([]byte(bad)); err == nil {
+			t.Errorf("%s: want error", bad)
+		}
+	}
+	dir := t.TempDir()
+	if _, changed, err := InstallMCP(dir); err != nil || !changed {
+		t.Fatalf("install: %v %v", changed, err)
+	}
+	if _, changed, _ := InstallMCP(dir); changed {
+		t.Error("second install must not change the file")
+	}
+}

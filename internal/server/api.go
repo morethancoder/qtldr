@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,11 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/morethancoder/qtldr/internal/analysis"
 	"github.com/morethancoder/qtldr/internal/config"
 	"github.com/morethancoder/qtldr/internal/editor"
 	"github.com/morethancoder/qtldr/internal/focus"
 	"github.com/morethancoder/qtldr/internal/glossary"
-	"github.com/morethancoder/qtldr/internal/lang/golang"
 	"github.com/morethancoder/qtldr/internal/model"
 	"github.com/morethancoder/qtldr/internal/notes"
 	"github.com/morethancoder/qtldr/internal/source"
@@ -131,25 +130,11 @@ func (s *Server) annotated(id string) (source.Source, int, error) {
 	if n.Kind != model.KindFunc {
 		return source.Source{}, http.StatusBadRequest, fmt.Errorf("%s is a %s; source is shown for functions", n.ID, n.Kind)
 	}
-	return Annotated(s.opt.Root, snap, n)
-}
-
-// Annotated reads a function's source (from its doc comment) and annotates
-// it with coverage, survivors and notes.
-func Annotated(root string, snap model.Snapshot, n model.Node) (source.Source, int, error) {
-	from := n.Line
-	if n.DocLine > 0 {
-		from = n.DocLine
-	}
-	text, err := golang.New().Source(context.Background(), root, n.File, from, n.EndLine)
+	src, err := analysis.Source(s.opt.Root, snap, n)
 	if err != nil {
-		return source.Source{}, http.StatusInternalServerError, fmt.Errorf("%v (the file changed since the last scan? it is re-scanned on save with --watch)", err)
+		return src, http.StatusInternalServerError, err
 	}
-	all, err := notes.Load(root)
-	if err != nil {
-		return source.Source{}, http.StatusInternalServerError, err
-	}
-	return source.Annotate(n, snap.Metrics[n.ID], notes.PlaceAll(root, all, n), text, from), http.StatusOK, nil
+	return src, http.StatusOK, nil
 }
 
 func (s *Server) handlePrompt(w http.ResponseWriter, r *http.Request) {

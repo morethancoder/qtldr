@@ -50,5 +50,5 @@ Direct CLI use: `go run ./cmd/qtldr -C testdata/ledger show <id>` (the fixture h
 - [x] M1 coverage, CRAP, check, hooks
 - [x] M2 web UI
 - [x] M3 mutation
-- [ ] M4 agents (MCP)
+- [x] M4 agents (MCP)
 - [ ] M5 breadth

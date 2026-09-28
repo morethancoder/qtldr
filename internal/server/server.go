@@ -54,6 +54,9 @@ type Server struct {
 	addr    atomic.Value // "127.0.0.1:port" once listening
 	agentMu sync.Mutex
 	agent   agentStatus
+	// notesSeen is the notes.json modification time last seen (poll loop only).
+	notesSeen    time.Time
+	notesChecked bool
 }
 
 // New analyzes the module (structure plus cached coverage) and returns a

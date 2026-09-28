@@ -2,9 +2,12 @@ package server
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/morethancoder/qtldr/internal/focus"
+	"github.com/morethancoder/qtldr/internal/notes"
+	"github.com/morethancoder/qtldr/internal/store"
 )
 
 // agentStatus is shown in the top bar: an MCP client used qtldr in the
@@ -25,7 +28,7 @@ func (s *Server) agentState() agentStatus {
 
 // pollAgent publishes an "agent" event when the connection state changes.
 func (s *Server) pollAgent(ctx context.Context) {
-	t := time.NewTicker(5 * time.Second)
+	t := time.NewTicker(2 * time.Second)
 	defer t.Stop()
 	for {
 		select {
@@ -33,6 +36,7 @@ func (s *Server) pollAgent(ctx context.Context) {
 			return
 		case <-t.C:
 			s.checkAgent()
+			s.checkFiles()
 		}
 	}
 }
@@ -47,4 +51,26 @@ func (s *Server) checkAgent() {
 	if changed {
 		s.Publish("agent", st)
 	}
+}
+
+// checkFiles notices notes and snapshots written by other qtldr processes
+// (`qtldr mcp` add_note/refresh, `qtldr analyze`) and tells browsers.
+func (s *Server) checkFiles() {
+	mt := modTime(notes.Path(s.opt.Root))
+	if s.notesChecked && !mt.Equal(s.notesSeen) {
+		s.Publish("notes", map[string]string{"target": ""})
+	}
+	s.notesSeen, s.notesChecked = mt, true
+	snap, err := store.ReadSnapshot(s.opt.Root)
+	if err == nil && snap.Generated.After(s.snapshot().Generated) {
+		s.setSnapshot(snap)
+	}
+}
+
+func modTime(path string) time.Time {
+	st, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}
+	}
+	return st.ModTime()
 }

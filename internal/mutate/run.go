@@ -42,7 +42,7 @@ type PackageReport struct {
 type Report struct {
 	Engine   string          `json:"engine"`
 	Version  string          `json:"engine_version"`
-	Packages []PackageReport `json:"packages"`
+	Packages []PackageReport `json:"packages,omitempty"`
 }
 
 // PreflightFailed is the reason recorded when a package's tests fail before

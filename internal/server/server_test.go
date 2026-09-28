@@ -19,6 +19,8 @@ import (
 	"github.com/morethancoder/qtldr/internal/config"
 	"github.com/morethancoder/qtldr/internal/focus"
 	"github.com/morethancoder/qtldr/internal/mutate"
+	"github.com/morethancoder/qtldr/internal/notes"
+	"github.com/morethancoder/qtldr/internal/store"
 )
 
 type testServer struct {
@@ -398,5 +400,27 @@ func TestRefreshMutation(t *testing.T) {
 	if !strings.Contains(src, `"kind":"survived","title":"2 mutants survived","detail":">= → >   ·   > → >="`) &&
 		!strings.Contains(src, `"title":"2 mutants survived"`) {
 		t.Errorf("survivor annotations: %s", src)
+	}
+}
+
+func TestNoticesOtherProcesses(t *testing.T) {
+	ts := start(t, nil)
+	events := ts.subscribe(t)
+	ts.checkFiles() // first look records the state
+	if _, err := notes.Add(ts.root, ts.snapshot(), "applyTiered", 0, "from an agent", "agent:x", ts.opt.Now()); err != nil {
+		t.Fatal(err)
+	}
+	later := time.Now().Add(2 * time.Second)
+	_ = os.Chtimes(notes.Path(ts.root), later, later)
+	snap := ts.snapshot()
+	snap.Generated = snap.Generated.Add(time.Minute)
+	if err := store.WriteSnapshot(ts.root, snap); err != nil {
+		t.Fatal(err)
+	}
+	ts.checkFiles()
+	waitEvent(t, events, "notes")
+	waitEvent(t, events, "snapshot")
+	if !ts.snapshot().Generated.Equal(snap.Generated) {
+		t.Error("newer snapshot not loaded")
 	}
 }

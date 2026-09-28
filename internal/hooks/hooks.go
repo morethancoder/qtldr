@@ -151,3 +151,45 @@ func InstallGit(path, moduleDir string) error {
 	}
 	return os.WriteFile(path, []byte(GitHookScript(moduleDir)), 0o755)
 }
+
+// MCPServer is the .mcp.json entry that starts `qtldr mcp` (Claude Code
+// project MCP config: {"mcpServers": {name: {type, command, args}}}).
+var MCPServer = json.RawMessage(`{"type":"stdio","command":"qtldr","args":["mcp"]}`)
+
+// MergeMCPConfig adds the qtldr server to .mcp.json content (empty = no file),
+// keeping other servers and key order. An existing "qtldr" entry is kept.
+func MergeMCPConfig(existing []byte) (out []byte, changed bool, err error) {
+	root := object{}
+	if len(bytes.TrimSpace(existing)) > 0 {
+		if err := json.Unmarshal(existing, &root); err != nil {
+			return nil, false, fmt.Errorf(".mcp.json is not a JSON object: %w", err)
+		}
+	}
+	servers := object{}
+	if raw, ok := root.get("mcpServers"); ok {
+		if err := json.Unmarshal(raw, &servers); err != nil {
+			return nil, false, fmt.Errorf(`.mcp.json "mcpServers" is not an object: %w`, err)
+		}
+	}
+	if _, ok := servers.get("qtldr"); ok {
+		return existing, false, nil
+	}
+	servers.set("qtldr", MCPServer)
+	root.set("mcpServers", mustMarshal(servers))
+	out, err = json.MarshalIndent(root, "", "  ")
+	return append(out, '\n'), true, err
+}
+
+// InstallMCP merges the qtldr server into <dir>/.mcp.json.
+func InstallMCP(dir string) (path string, changed bool, err error) {
+	path = filepath.Join(dir, ".mcp.json")
+	b, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return path, false, fmt.Errorf("read %s: %w", path, err)
+	}
+	out, changed, err := MergeMCPConfig(b)
+	if err != nil || !changed {
+		return path, false, err
+	}
+	return path, true, os.WriteFile(path, out, 0o644)
+}
