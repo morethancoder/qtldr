@@ -1,0 +1,684 @@
+[
+    {
+        "PkgName": "pricing",
+        "FuncName": "applyTiered",
+        "Complexity": 11,
+        "Pos": {
+            "Filename": "internal/pricing/tier.go",
+            "Offset": 497,
+            "Line": 20,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "validate",
+        "Complexity": 9,
+        "Pos": {
+            "Filename": "internal/pricing/apply.go",
+            "Offset": 755,
+            "Line": 32,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "BestRule",
+        "Complexity": 6,
+        "Pos": {
+            "Filename": "internal/pricing/apply.go",
+            "Offset": 1072,
+            "Line": 49,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "TestPayShip",
+        "Complexity": 6,
+        "Pos": {
+            "Filename": "internal/order/order_test.go",
+            "Offset": 980,
+            "Line": 40,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "(*Server).handleQuote",
+        "Complexity": 5,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 1051,
+            "Line": 49,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Order).Validate",
+        "Complexity": 5,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 1053,
+            "Line": 56,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "TestApply",
+        "Complexity": 5,
+        "Pos": {
+            "Filename": "internal/pricing/pricing_test.go",
+            "Offset": 704,
+            "Line": 30,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "(*Store).LoadRules",
+        "Complexity": 4,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 1122,
+            "Line": 52,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "Apply",
+        "Complexity": 4,
+        "Pos": {
+            "Filename": "internal/pricing/apply.go",
+            "Offset": 167,
+            "Line": 9,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestPercent",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 497,
+            "Line": 26,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "TestRedact",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/store/store_test.go",
+            "Offset": 33,
+            "Line": 5,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestRound",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 810,
+            "Line": 39,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "TestValidate",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/order/order_test.go",
+            "Offset": 315,
+            "Line": 15,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "TestQuoteErrors",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi_test.go",
+            "Offset": 943,
+            "Line": 41,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "Merge",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 1325,
+            "Line": 69,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "TestLabel",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/order/order_test.go",
+            "Offset": 1397,
+            "Line": 57,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestSub",
+        "Complexity": 3,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 137,
+            "Line": 11,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "parseLine",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 1824,
+            "Line": 75,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "TestNewLineAndTotal",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/order/order_test.go",
+            "Offset": 33,
+            "Line": 5,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "main",
+        "FuncName": "TestAddr",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "cmd/ledgerd/main_test.go",
+            "Offset": 32,
+            "Line": 5,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "Discount",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/pricing/discount.go",
+            "Offset": 118,
+            "Line": 6,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "TestValidate",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/pricing/pricing_test.go",
+            "Offset": 1351,
+            "Line": 51,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "TestApplyTieredPercent",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/pricing/pricing_test.go",
+            "Offset": 253,
+            "Line": 13,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "TestMerge",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/order/order_test.go",
+            "Offset": 772,
+            "Line": 33,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "redact",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 1953,
+            "Line": 80,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "TestConfigFromEnv",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/store/store_test.go",
+            "Offset": 375,
+            "Line": 18,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "TestQuote",
+        "Complexity": 2,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi_test.go",
+            "Offset": 569,
+            "Line": 30,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "scanRule",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 1599,
+            "Line": 70,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "Percent",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 556,
+            "Line": 30,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Order).Total",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 850,
+            "Line": 47,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestMul",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 385,
+            "Line": 20,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "Open",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 744,
+            "Line": 40,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "main",
+        "FuncName": "addr",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "cmd/ledgerd/main.go",
+            "Offset": 547,
+            "Line": 30,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "main",
+        "FuncName": "main",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "cmd/ledgerd/main.go",
+            "Offset": 181,
+            "Line": 14,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestString",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 1072,
+            "Line": 48,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "applyFlat",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/pricing/flat.go",
+            "Offset": 142,
+            "Line": 6,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "TestHealth",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi_test.go",
+            "Offset": 1389,
+            "Line": 58,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "ConfigFromEnv",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 568,
+            "Line": 32,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Order).Pay",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 1595,
+            "Line": 84,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "TestAdd",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money_test.go",
+            "Offset": 33,
+            "Line": 5,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "Sub",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 357,
+            "Line": 19,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Order).Ship",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 1777,
+            "Line": 93,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "TestDiscount",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/pricing/pricing_test.go",
+            "Offset": 1612,
+            "Line": 60,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "main",
+        "FuncName": "run",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "cmd/ledgerd/main.go",
+            "Offset": 277,
+            "Line": 20,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Status).Label",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 1949,
+            "Line": 102,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "first",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 2295,
+            "Line": 92,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "TestApplyTieredEmpty",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/pricing/pricing_test.go",
+            "Offset": 556,
+            "Line": 24,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "Round",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 718,
+            "Line": 38,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "pricing",
+        "FuncName": "price",
+        "Complexity": 1,
+        "Pos": {
+            "Filename": "internal/pricing/apply.go",
+            "Offset": 523,
+            "Line": 24,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "(Line).Subtotal",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 732,
+            "Line": 44,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "New",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 705,
+            "Line": 35,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "(Amount).String",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 877,
+            "Line": 47,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "(*Server).Routes",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 804,
+            "Line": 38,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "store",
+        "FuncName": "(*Store).Close",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/store/store.go",
+            "Offset": 1002,
+            "Line": 49,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "writeJSON",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 2398,
+            "Line": 99,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "Add",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 270,
+            "Line": 16,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "handleHealth",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 951,
+            "Line": 45,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "get",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi_test.go",
+            "Offset": 350,
+            "Line": 23,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "discountParam",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi.go",
+            "Offset": 2160,
+            "Line": 87,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "httpapi",
+        "FuncName": "(fakeRules).LoadRules",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/httpapi/httpapi_test.go",
+            "Offset": 241,
+            "Line": 19,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "order",
+        "FuncName": "NewLine",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/order/order.go",
+            "Offset": 554,
+            "Line": 39,
+            "Column": 1
+        }
+    },
+    {
+        "PkgName": "money",
+        "FuncName": "Mul",
+        "Complexity": 0,
+        "Pos": {
+            "Filename": "internal/money/money.go",
+            "Offset": 460,
+            "Line": 27,
+            "Column": 1
+        }
+    }
+]

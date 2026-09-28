@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>qtldr explorer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: {{p.bg}}; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif;">
+
+<header style="height: 56px; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: {{p.bg}}; border-bottom: 1px solid {{p.border}};">
+<div style="display: flex; align-items: center; gap: 8px;">
+<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6 L12 12 L19 7 M12 12 L12 19" style="fill: none; stroke: {{p.accent}}; stroke-width: 1.8px; stroke-linecap: round;"></path><circle cx="5" cy="6" r="2.6" style="fill: {{p.accent}};"></circle><circle cx="19" cy="7" r="2.6" style="fill: {{p.accent}};"></circle><circle cx="12" cy="12" r="2.6" style="fill: {{p.accent}};"></circle><circle cx="12" cy="19" r="2.6" style="fill: {{p.accent}};"></circle></svg>
+<span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">qtldr</span>
+</div>
+<span style="width: 1px; height: 22px; background: {{p.border}};"></span>
+<nav aria-label="Location" style="display: flex; align-items: center; gap: 4px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;">
+<sc-for list="{{crumbs}}" as="c" hint-placeholder-count="3">
+<sc-if value="{{c.sep}}" hint-placeholder-val="{{true}}"><span style="color: {{p.faint}};">/</span></sc-if>
+<sc-if value="{{c.link}}" hint-placeholder-val="{{true}}"><button onClick="{{c.go}}" style="height: 32px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: {{p.muted}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer;">{{c.label}}</button></sc-if>
+<sc-if value="{{c.here}}" hint-placeholder-val="{{false}}"><span style="padding: 0 8px; color: {{p.text}}; font-weight: 600;">{{c.label}}</span></sc-if>
+</sc-for>
+</nav>
+<span style="flex-grow: 1;"></span>
+<span style="font-size: 12px; color: {{p.muted}};">Color by</span>
+<div role="group" aria-label="Color boxes by" style="display: flex; gap: 2px; padding: 3px; background: {{p.surface2}}; border: 1px solid {{p.border}}; border-radius: 8px;">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="4">
+<button aria-pressed="{{m.pressed}}" onClick="{{m.pick}}" style="height: 30px; padding: 0 11px; border: 0; border-radius: 6px; background: {{m.bg}}; color: {{m.fg}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer;">{{m.label}}</button>
+</sc-for>
+</div>
+<label for="theme-pick" style="font-size: 12px; color: {{p.muted}};">Theme</label>
+<select id="theme-pick" value="{{themeId}}" onChange="{{pickTheme}}" style="height: 36px; padding: 0 10px; border: 1px solid {{p.border}}; border-radius: 8px; background: {{p.surface2}}; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; cursor: pointer;">
+<option value="gruvbox-dark">Gruvbox Dark</option>
+<option value="gruvbox-light">Gruvbox Light</option>
+<option value="github-dark">GitHub Dark</option>
+<option value="github-light">GitHub Light</option>
+<option value="tokyo-night">Tokyo Night</option>
+<option value="catppuccin-mocha">Catppuccin Mocha</option>
+<option value="nord">Nord</option>
+<option value="dracula">Dracula</option>
+<option value="solarized-light">Solarized Light</option>
+</select>
+<div style="display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px; border: 1px solid {{p.border}}; border-radius: 999px; font-size: 12px; color: {{p.text}};">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{p.green}};"></span>
+<span>Claude Code · MCP</span>
+</div>
+</header>
+
+<div style="flex-grow: 1; display: flex; min-height: 0;">
+
+<main style="width: 1060px; flex-shrink: 0; display: flex; flex-direction: column;">
+<div style="position: relative; width: 1060px; height: 808px; overflow: hidden; background-color: {{p.surface}}; background-image: radial-gradient({{p.border}} 1px, transparent 1px); background-size: 22px 22px;">
+
+<div style="position: absolute; left: 20px; top: 12px; font-size: 12.5px; color: {{p.muted}};">{{caption}}</div>
+<sc-if value="{{showUp}}" hint-placeholder-val="{{false}}">
+<button onClick="{{goUp}}" style="position: absolute; right: 16px; top: 6px; height: 30px; padding: 0 12px; border: 1px solid {{p.border}}; border-radius: 6px; background: {{p.bg}}; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; cursor: pointer; z-index: 3;">Up one level</button>
+</sc-if>
+
+<sc-if value="{{hasBox}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; left: {{box.x}}px; top: {{box.y}}px; width: {{box.w}}px; height: {{box.h}}px; box-sizing: border-box; border-radius: 14px; background: {{box.fill}}; border: {{box.border}};">
+<div style="height: 44px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 8px;">
+<button onClick="{{box.pick}}" style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: {{p.text}}; cursor: pointer; font-family: 'JetBrains Mono', ui-monospace, monospace;">
+<sc-if value="{{box.pure}}" hint-placeholder-val="{{true}}"><span style="font-size: 14px; color: {{p.accent}};">λ</span></sc-if>
+<span style="font-size: 14px; font-weight: 600;">{{box.label}}</span>
+<span style="width: 18px; height: 18px; border-radius: 50%; background: {{box.cDot}}; color: {{p.dotText}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">C</span>
+<span style="width: 18px; height: 18px; border-radius: 50%; background: {{box.mDot}}; color: {{p.dotText}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">M</span>
+</button>
+<span style="font-size: 12px; color: {{p.muted}};">{{box.sub}}</span>
+<span style="flex-grow: 1;"></span>
+<sc-if value="{{box.hasLegend}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 14px;">
+<sc-for list="{{srcLegend}}" as="lg" hint-placeholder-count="4">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{p.muted}};"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{lg.c}};"></span>{{lg.t}}</span>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-for list="{{edges}}" as="e" hint-placeholder-count="8">
+<svg width="1060" height="808" viewBox="0 0 1060 808" aria-hidden="true" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;"><path d="{{e.d}}" style="fill: none; stroke: {{e.color}}; stroke-width: {{e.w}}px;"></path><polygon points="{{e.head}}" style="fill: {{e.color}};"></polygon></svg>
+</sc-for>
+
+<sc-for list="{{nodes}}" as="n" hint-placeholder-count="6">
+<button onClick="{{n.pick}}" onDoubleClick="{{n.open}}" aria-label="{{n.aria}}" style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; width: {{n.w}}px; height: {{n.h}}px; box-sizing: border-box; margin: 0; padding: {{n.pad}}; background: {{n.fill}}; border: {{n.border}}; border-radius: {{n.radius}}px; box-shadow: {{n.shadow}}; color: {{p.text}}; text-align: left; font-family: 'IBM Plex Sans', system-ui, sans-serif; cursor: pointer; overflow: hidden;">
+<sc-if value="{{n.isCard}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="height: 20px; display: flex; align-items: center; gap: 6px;">
+<sc-if value="{{n.pure}}" hint-placeholder-val="{{false}}"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{p.accent}};">λ</span></sc-if>
+<sc-if value="{{n.hasVis}}" hint-placeholder-val="{{false}}"><span style="width: 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{p.faint}};">{{n.vis}}</span></sc-if>
+<span style="flex-grow: 1; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{n.title}}</span>
+<span style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: {{n.cDot}}; color: {{p.dotText}}; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">C</span>
+<span style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: {{n.mDot}}; color: {{p.dotText}}; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">M</span>
+</div>
+<sc-for list="{{n.issues}}" as="is" hint-placeholder-count="1">
+<div style="height: 18px; display: flex; align-items: center; gap: 7px; font-size: 12px; color: {{p.muted}};"><span style="width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: {{is.c}};"></span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{is.t}}</span></div>
+</sc-for>
+<sc-if value="{{n.hasChips}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 4px 5px;">
+<sc-for list="{{n.chips}}" as="ch" hint-placeholder-count="2">
+<span style="height: 18px; display: inline-flex; align-items: center; padding: 0 6px; border-radius: 5px; background: {{ch.bg}}; color: {{ch.fg}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; white-space: nowrap;">{{ch.t}}</span>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{n.isPill}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 8px; height: 100%;">
+<sc-if value="{{n.hasDot}}" hint-placeholder-val="{{true}}"><span style="width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: {{n.cDot}};"></span></sc-if>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{n.pillFg}}; white-space: nowrap;">{{n.title}}</span>
+</div>
+</sc-if>
+</button>
+</sc-for>
+
+<sc-if value="{{isSource}}" hint-placeholder-val="{{false}}">
+<section aria-label="Source of applyTiered" style="position: absolute; left: {{code.x}}px; top: {{code.y}}px; width: {{code.w}}px; height: {{code.h}}px; box-sizing: border-box; overflow: auto; padding: 8px 0 14px; background: {{p.surface}}; border: 1px solid {{p.border}}; border-radius: 10px;">
+<sc-for list="{{lines}}" as="ln" hint-placeholder-count="12">
+<div style="background: {{ln.bg}};">
+<div style="display: flex; align-items: stretch; height: 20px;">
+<span style="width: 52px; flex-shrink: 0; box-sizing: border-box; padding-right: 10px; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 20px; color: {{p.faint}};">{{ln.n}}</span>
+<span style="width: 3px; flex-shrink: 0; background: {{ln.gut}};"></span>
+<span style="padding-left: 14px; white-space: pre; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 20px;"><sc-for list="{{ln.toks}}" as="tk" hint-placeholder-count="6"><span style="color: {{tk.c}};">{{tk.t}}</span></sc-for></span>
+</div>
+<sc-for list="{{ln.notes}}" as="nt" hint-placeholder-count="1">
+<div style="margin: 3px 16px 6px 69px; padding: 7px 10px; display: flex; flex-direction: column; gap: 3px; border-radius: 6px; background: {{nt.bg}}; border: 1px solid {{nt.bd}};">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+<span style="padding: 2px 6px; border-radius: 4px; background: {{nt.badgeBg}}; color: {{p.dotText}}; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;">{{nt.badge}}</span>
+<span style="font-size: 12.5px; font-weight: 600; color: {{p.text}};">{{nt.title}}</span>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{p.text}};">{{nt.detail}}</span>
+</div>
+<div style="font-size: 12.5px; color: {{p.muted}};">{{nt.why}}</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+<div role="status" style="position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: 780px; box-sizing: border-box; padding: 10px 14px; border-radius: 8px; background: {{p.surface2}}; border: 1px solid {{p.border2}}; color: {{p.text}}; font-size: 13px; line-height: 1.45; box-shadow: {{p.shadow}}; z-index: 20;">{{toast}}</div>
+</sc-if>
+</div>
+
+<footer style="height: 36px; flex-shrink: 0; box-sizing: border-box; position: relative; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: {{p.bg}}; border-top: 1px solid {{p.border}}; font-size: 12px; color: {{p.muted}};">
+<span>Worse</span>
+<div style="display: flex; gap: 3px;">
+<sc-for list="{{swatches}}" as="sw" hint-placeholder-count="5"><span style="width: 16px; height: 10px; border-radius: 2px; background: {{sw.c}};"></span></sc-for>
+</div>
+<span>Better</span>
+<span style="color: {{p.faint}};">·</span>
+<span><span style="color: {{p.accent}}; font-family: 'JetBrains Mono', ui-monospace, monospace;">λ</span> pure · C = CRAP · M = mutation</span>
+<div onMouseEnter="{{legend.enter}}" onMouseLeave="{{legend.leave}}" style="position: relative; display: flex; align-items: center;">
+<button aria-label="How box colors work" aria-expanded="{{legend.open}}" onClick="{{legend.toggle}}" onFocus="{{legend.enter}}" style="width: 22px; height: 22px; border-radius: 50%; border: 1px solid {{p.border2}}; background: transparent; color: {{p.muted}}; font-size: 11px; font-weight: 600; cursor: pointer; padding: 0;">?</button>
+<sc-if value="{{legend.open}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; left: -8px; bottom: 22px; padding-bottom: 8px; z-index: 30;">
+<div style="width: 320px; box-sizing: border-box; padding: 14px; border-radius: 10px; background: {{p.surface2}}; border: 1px solid {{p.border2}}; color: {{p.text}}; box-shadow: {{p.shadow}}; display: flex; flex-direction: column; gap: 7px;">
+<div style="font-size: 13px; font-weight: 600;">{{legend.title}}</div>
+<div style="font-size: 12.5px; line-height: 1.5;">{{legend.body}}</div>
+<div style="font-size: 12.5px; line-height: 1.5; color: {{p.muted}};"><span style="font-weight: 600; color: {{p.text}};">Good: </span>{{legend.good}}</div>
+<a href="{{legend.link}}" target="_blank" rel="noopener" style="font-size: 12.5px; font-weight: 500; color: {{p.accent}};">{{legend.linkText}} ↗</a>
+</div>
+</div>
+</sc-if>
+</div>
+<span style="flex-grow: 1;"></span>
+<span>Click to inspect · double-click to open</span>
+</footer>
+</main>
+
+<aside aria-label="Inspector" style="width: 380px; flex-shrink: 0; box-sizing: border-box; position: relative; z-index: 5; display: flex; flex-direction: column; gap: 18px; padding: 20px; background: {{p.bg}}; border-left: 1px solid {{p.border}};">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: {{p.muted}};">{{insp.kindLabel}}</span>
+<div style="display: flex; align-items: center; gap: 8px;">
+<h2 style="margin: 0; flex-grow: 1; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{insp.title}}</h2>
+<sc-if value="{{insp.hasTag}}" hint-placeholder-val="{{true}}"><span style="padding: 2px 8px; border-radius: 999px; background: {{insp.tagBg}}; color: {{insp.tagFg}}; font-size: 11px; font-weight: 500; white-space: nowrap;">{{insp.tag}}</span></sc-if>
+</div>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{p.muted}}; word-break: break-all;">{{insp.sub}}</span>
+<sc-if value="{{insp.hasSig}}" hint-placeholder-val="{{false}}"><div style="margin-top: 4px; padding: 8px 10px; border-radius: 6px; background: {{p.surface2}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; line-height: 1.5; color: {{p.text}};">{{insp.sig}}</div></sc-if>
+</div>
+
+<sc-if value="{{insp.hasRows}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column;">
+<sc-for list="{{insp.rows}}" as="r" hint-placeholder-count="8">
+<div onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}" style="position: relative; display: flex; align-items: center; gap: 8px; height: 32px; border-bottom: 1px solid {{p.border}};">
+<span style="font-size: 13px; color: {{p.muted}};">{{r.label}}</span>
+<button aria-label="{{r.aria}}" aria-expanded="{{r.open}}" onClick="{{r.toggle}}" onFocus="{{r.enter}}" style="width: 20px; height: 20px; flex-shrink: 0; padding: 0; border-radius: 50%; border: 1px solid {{p.border2}}; background: transparent; color: {{p.muted}}; font-size: 11px; font-weight: 600; cursor: pointer;">?</button>
+<span style="flex-grow: 1;"></span>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: {{p.text}};">{{r.value}}</span>
+<span style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; background: {{r.chip}};"></span>
+<sc-if value="{{r.open}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; right: 100%; top: -12px; padding-right: 10px; z-index: 30;">
+<div style="width: 310px; box-sizing: border-box; padding: 14px; border-radius: 10px; background: {{p.surface2}}; border: 1px solid {{p.border2}}; color: {{p.text}}; box-shadow: {{p.shadow}}; display: flex; flex-direction: column; gap: 7px;">
+<div style="display: flex; align-items: flex-start; gap: 8px;">
+<div style="flex-grow: 1; font-size: 13px; font-weight: 600;">{{r.tTitle}}</div>
+<sc-if value="{{r.pinned}}" hint-placeholder-val="{{false}}"><button aria-label="Close" onClick="{{r.close}}" style="width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: {{p.muted}}; font-size: 15px; cursor: pointer;">×</button></sc-if>
+</div>
+<div style="font-size: 12.5px; line-height: 1.5;">{{r.tBody}}</div>
+<div style="font-size: 12.5px; line-height: 1.5; color: {{p.muted}};"><span style="font-weight: 600; color: {{p.text}};">Good: </span>{{r.tGood}}</div>
+<sc-if value="{{r.hasLink}}" hint-placeholder-val="{{true}}"><a href="{{r.link}}" target="_blank" rel="noopener" style="font-size: 12.5px; font-weight: 500; color: {{p.accent}};">{{r.linkText}} ↗</a></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{insp.hasList}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: {{p.muted}};">{{insp.listTitle}}</span>
+<sc-for list="{{insp.list}}" as="it" hint-placeholder-count="3">
+<button onClick="{{it.go}}" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 6px 10px; border: 1px solid {{p.border}}; border-radius: 6px; background: {{p.surface2}}; color: {{p.text}}; text-align: left; cursor: pointer; font-family: 'IBM Plex Sans', system-ui, sans-serif;">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; white-space: nowrap;">{{it.a}}</span>
+<span style="flex-grow: 1; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{p.muted}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{it.b}}</span>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: {{it.cColor}}; white-space: nowrap;">{{it.c}}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<sc-if value="{{insp.hasPrimary}}" hint-placeholder-val="{{true}}">
+<button onClick="{{insp.primaryGo}}" style="height: 42px; border: 0; border-radius: 8px; background: {{p.accent}}; color: {{p.onAccent}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer;">{{insp.primaryLabel}}</button>
+</sc-if>
+<sc-if value="{{insp.hasEditors}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 6px;">
+<span style="font-size: 12px; color: {{p.muted}}; margin-right: 2px;">Open in</span>
+<sc-for list="{{insp.editors}}" as="ed" hint-placeholder-count="3">
+<button onClick="{{ed.go}}" style="flex-grow: 1; height: 34px; border: 1px solid {{p.border}}; border-radius: 6px; background: {{p.surface2}}; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; cursor: pointer;">{{ed.label}}</button>
+</sc-for>
+</div>
+</sc-if>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+<button onClick="{{insp.copy}}" style="height: 38px; border: 1px solid {{p.border2}}; border-radius: 8px; background: transparent; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer;">Copy fix prompt</button>
+<button onClick="{{insp.send}}" style="height: 38px; border: 1px solid {{p.accent}}; border-radius: 8px; background: {{p.accentSoft}}; color: {{p.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer;">Send to agent</button>
+</div>
+</div>
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["gruvbox-dark","gruvbox-light","github-dark","github-light","tokyo-night","catppuccin-mocha","nord","dracula","solarized-light"],"default":"gruvbox-dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  themes() {
+    return {
+      'gruvbox-dark': { name: 'Gruvbox Dark', dark: true, bg: '#1d2021', surface: '#282828', surface2: '#32302f', border: '#3c3836', border2: '#504945', text: '#ebdbb2', muted: '#bdae93', faint: '#928374', accent: '#83a598', red: '#fb4934', orange: '#fe8019', yellow: '#fabd2f', green: '#b8bb26', kw: '#fb4934', str: '#b8bb26', num: '#d3869b', com: '#928374', fn: '#8ec07c', ty: '#fabd2f', plain: '#ebdbb2' },
+      'gruvbox-light': { name: 'Gruvbox Light', dark: false, bg: '#f2e5bc', surface: '#fbf1c7', surface2: '#ebdbb2', border: '#e0cfa9', border2: '#d5c4a1', text: '#3c3836', muted: '#5f554d', faint: '#7c6f64', accent: '#076678', red: '#9d0006', orange: '#af3a03', yellow: '#b57614', green: '#79740e', kw: '#9d0006', str: '#79740e', num: '#8f3f71', com: '#7c6f64', fn: '#427b58', ty: '#b57614', plain: '#3c3836' },
+      'github-dark': { name: 'GitHub Dark', dark: true, bg: '#010409', surface: '#0d1117', surface2: '#161b22', border: '#21262d', border2: '#30363d', text: '#e6edf3', muted: '#9198a1', faint: '#7d8590', accent: '#58a6ff', red: '#f85149', orange: '#db6d28', yellow: '#d29922', green: '#3fb950', kw: '#ff7b72', str: '#a5d6ff', num: '#79c0ff', com: '#8b949e', fn: '#d2a8ff', ty: '#ffa657', plain: '#e6edf3' },
+      'github-light': { name: 'GitHub Light', dark: false, bg: '#f6f8fa', surface: '#ffffff', surface2: '#f6f8fa', border: '#d8dee4', border2: '#d0d7de', text: '#1f2328', muted: '#59636e', faint: '#6e7781', accent: '#0969da', red: '#cf222e', orange: '#bc4c00', yellow: '#9a6700', green: '#1a7f37', kw: '#cf222e', str: '#0a3069', num: '#0550ae', com: '#6e7781', fn: '#8250df', ty: '#953800', plain: '#1f2328' },
+      'tokyo-night': { name: 'Tokyo Night', dark: true, bg: '#16161e', surface: '#1a1b26', surface2: '#1f2335', border: '#292e42', border2: '#3b4261', text: '#c0caf5', muted: '#a9b1d6', faint: '#737aa2', accent: '#7aa2f7', red: '#f7768e', orange: '#ff9e64', yellow: '#e0af68', green: '#9ece6a', kw: '#bb9af7', str: '#9ece6a', num: '#ff9e64', com: '#737aa2', fn: '#7aa2f7', ty: '#2ac3de', plain: '#c0caf5' },
+      'catppuccin-mocha': { name: 'Catppuccin Mocha', dark: true, bg: '#181825', surface: '#1e1e2e', surface2: '#313244', border: '#313244', border2: '#45475a', text: '#cdd6f4', muted: '#a6adc8', faint: '#9399b2', accent: '#89b4fa', red: '#f38ba8', orange: '#fab387', yellow: '#f9e2af', green: '#a6e3a1', kw: '#cba6f7', str: '#a6e3a1', num: '#fab387', com: '#9399b2', fn: '#89b4fa', ty: '#f9e2af', plain: '#cdd6f4' },
+      'nord': { name: 'Nord', dark: true, bg: '#242933', surface: '#2e3440', surface2: '#3b4252', border: '#3b4252', border2: '#4c566a', text: '#eceff4', muted: '#c2cad8', faint: '#8a95ab', accent: '#88c0d0', red: '#bf616a', orange: '#d08770', yellow: '#ebcb8b', green: '#a3be8c', kw: '#81a1c1', str: '#a3be8c', num: '#b48ead', com: '#8a95ab', fn: '#88c0d0', ty: '#8fbcbb', plain: '#d8dee9' },
+      'dracula': { name: 'Dracula', dark: true, bg: '#21222c', surface: '#282a36', surface2: '#343746', border: '#343746', border2: '#44475a', text: '#f8f8f2', muted: '#c3c5d3', faint: '#8390c0', accent: '#bd93f9', red: '#ff5555', orange: '#ffb86c', yellow: '#f1fa8c', green: '#50fa7b', kw: '#ff79c6', str: '#f1fa8c', num: '#bd93f9', com: '#8390c0', fn: '#50fa7b', ty: '#8be9fd', plain: '#f8f8f2' },
+      'solarized-light': { name: 'Solarized Light', dark: false, bg: '#eee8d5', surface: '#fdf6e3', surface2: '#eee8d5', border: '#e4dcc4', border2: '#d3cbb3', text: '#073642', muted: '#4f6269', faint: '#657b83', accent: '#268bd2', red: '#dc322f', orange: '#cb4b16', yellow: '#b58900', green: '#859900', kw: '#859900', str: '#2aa198', num: '#d33682', com: '#6c7f86', fn: '#268bd2', ty: '#b58900', plain: '#4f6269' }
+    };
+  }
+
+  hexA(hex, a) {
+    const h = hex.replace('#', '');
+    return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')';
+  }
+  mix(a, b, t) {
+    const pa = a.replace('#', ''), pb = b.replace('#', '');
+    let out = '#';
+    for (let i = 0; i < 3; i++) {
+      const x = parseInt(pa.slice(i * 2, i * 2 + 2), 16), y = parseInt(pb.slice(i * 2, i * 2 + 2), 16);
+      const v = Math.round(x + (y - x) * t);
+      out += (v < 16 ? '0' : '') + v.toString(16);
+    }
+    return out;
+  }
+
+  th() {
+    const all = this.themes();
+    const s = this.state || {};
+    const id = s.theme || this.props.theme || 'gruvbox-dark';
+    const t = all[id] || all['gruvbox-dark'];
+    return Object.assign({}, t, {
+      id: all[id] ? id : 'gruvbox-dark',
+      g5: [t.red, t.orange, t.yellow, this.mix(t.yellow, t.green, 0.55), t.green],
+      onAccent: t.dark ? t.bg : '#ffffff',
+      accentSoft: this.hexA(t.accent, t.dark ? 0.16 : 0.12),
+      edge: t.border2,
+      edgeHi: t.accent,
+      shadow: t.dark ? '0 10px 30px rgba(0,0,0,0.45)' : '0 8px 24px rgba(30,30,20,0.12)',
+      dotText: t.surface,
+      tintA: t.dark ? 0.16 : 0.13,
+      strokeA: t.dark ? 0.55 : 0.6,
+      boxA: t.dark ? 0.06 : 0.07
+    });
+  }
+
+  crapOf(cc, cov) { return Math.round((cc * cc * Math.pow(1 - cov, 3) + cc) * 10) / 10; }
+  mutOf(k, s) { return (k + s) === 0 ? null : Math.round(k * 100 / (k + s)); }
+  gCrap(c) { if (c == null) return 1; if (c <= 5) return 10; if (c <= 8) return 8; if (c <= 12) return 6; if (c <= 20) return 4; if (c <= 30) return 2; return 1; }
+  gMut(m) { if (m == null) return 1; if (m >= 90) return 10; if (m >= 80) return 8; if (m >= 70) return 6; if (m >= 55) return 4; if (m >= 40) return 2; return 1; }
+  gCov(c) { if (c == null) return 1; if (c >= 0.9) return 10; if (c >= 0.8) return 8; if (c >= 0.7) return 6; if (c >= 0.5) return 4; if (c >= 0.3) return 2; return 1; }
+  gCol(g) { const s = this._p.g5; return g >= 9 ? s[4] : g >= 7 ? s[3] : g >= 5 ? s[2] : g >= 3 ? s[1] : s[0]; }
+  pct(v) { return v == null ? '—' : Math.round(v * 100) + '%'; }
+
+  gloss() {
+    return {
+      crap: { title: 'CRAP — Change Risk Anti-Patterns', body: 'How risky a function is to change: its complexity, weighted by how much of it the tests never run. CRAP = CC² × (1 − coverage)³ + CC.', good: 'Lower is better. 1–5 clean · 5–30 refactor or add tests · 30+ high risk. qtldr target: 8 or less.', link: 'https://github.com/unclebob/crap4go', linkText: 'crap4go — reference implementation' },
+      crapmu: { title: 'CRAP average (μ)', body: 'Mean CRAP across every function in the package. The box color uses the worst function instead, so one bad function is never hidden by many good ones.', good: 'Lower is better. Compare it with CRAP max to see if the risk is spread out or in one place.', link: '', linkText: '' },
+      cc: { title: 'Cyclomatic complexity (CC)', body: 'The number of independent paths through a function: 1 plus each if, for, range, case, select case, && and ||.', good: 'Lower is better. 5 or less is easy to test fully; above 10, split the function.', link: 'https://en.wikipedia.org/wiki/Cyclomatic_complexity', linkText: 'Wikipedia — Cyclomatic complexity' },
+      cognitive: { title: 'Cognitive complexity', body: 'How hard the code is to read. Like CC, but nesting costs extra, so an if inside a for inside a switch scores high.', good: 'Lower is better. 15 per function is a common limit.', link: 'https://github.com/uudashr/gocognit', linkText: 'gocognit — Go implementation' },
+      coverage: { title: 'Statement coverage', body: 'The share of statements that ran at least once during go test. It shows code was executed, not that its results were checked.', good: 'Higher is better. Aim for 80%+, and 100% on critical paths.', link: 'https://go.dev/blog/cover', linkText: 'The Go Blog — The cover story' },
+      mutation: { title: 'Mutation score', body: 'qtldr makes small changes to the code (> to >=, + to −, removing a call) and reruns the tests. Score = killed ÷ (killed + survived).', good: 'Higher is better. 80%+ is strong; under 60% means tests run the code without really checking it.', link: 'https://github.com/go-gremlins/gremlins', linkText: 'Gremlins — mutation testing for Go' },
+      survived: { title: 'Surviving mutants', body: 'Changes to the code that no test noticed. Each one is usually a missing assertion or an untested edge case.', good: '0 is the goal. Add a test that fails on the mutant, or mark it equivalent if it cannot change behavior.', link: 'https://en.wikipedia.org/wiki/Mutation_testing', linkText: 'Wikipedia — Mutation testing' },
+      uncovered: { title: 'Not-covered mutants', body: 'Mutation sites on lines no test executes, so they were never tried. They are coverage gaps, not a measure of test strength.', good: '0 is the goal. Cover the line first; the next run will test these mutants.', link: '', linkText: '' },
+      churn: { title: 'Churn', body: 'Commits that touched this code in the last 12 months, from git log. Complex code that changes often is where bugs cluster.', good: 'Low churn is calm. High churn plus high CRAP is the top refactoring target.', link: 'https://github.com/adamtornhill/code-maat', linkText: 'Code Maat — churn analysis' },
+      grade: { title: 'How box colors work', body: 'CRAP and mutation score are each graded 1–10 and averaged into the color, red to green, using the current theme\'s own red, orange, yellow and green. A package takes the worst grade of anything inside it, and missing data counts as worst. λ marks pure code: no I/O, clock, globals or context.', good: 'Green everywhere. Follow red down the levels to find the cause.', link: 'https://github.com/unclebob/uml-viewer', linkText: 'Color grading inspired by uml-viewer' }
+    };
+  }
+
+  data() {
+    const pkgs = [
+      { id: 'ledgerd', name: 'cmd/ledgerd', pure: false, funcs: 3, types: 0, crapMax: 4.2, crapMu: 2.6, cov: 0.64, k: 10, s: 4, u: 2, mutWorst: 71, worst: 'run', churn: 6, issues: [] },
+      { id: 'httpapi', name: 'internal/httpapi', pure: false, funcs: 9, types: 3, crapMax: 18.7, crapMu: 7.9, cov: 0.58, k: 13, s: 12, u: 9, mutWorst: 31, worst: 'handleQuote', churn: 31, issues: [['handleQuote · mutation 31%', 0]] },
+      { id: 'store', name: 'internal/store', pure: false, funcs: 7, types: 2, crapMax: 11.3, crapMu: 5.4, cov: 0.66, k: 0, s: 0, u: 0, mutWorst: null, noMut: true, worst: 'LoadRules', churn: 12, issues: [['mutation not measured yet', 0]] },
+      { id: 'order', name: 'internal/order', pure: true, funcs: 8, types: 4, crapMax: 6.1, crapMu: 3.0, cov: 0.93, k: 38, s: 5, u: 1, mutWorst: 82, worst: 'Merge', churn: 9, issues: [] },
+      { id: 'pricing', name: 'internal/pricing', pure: true, funcs: 6, types: 3, crapMax: 30.0, crapMu: 9.9, cov: 0.72, k: 37, s: 12, u: 11, mutWorst: null, worst: 'BestRule', churn: 24, issues: [['BestRule has no tests', 0], ['12 mutants survived', 1]] },
+      { id: 'money', name: 'internal/money', pure: true, funcs: 6, types: 1, crapMax: 3.0, crapMu: 1.4, cov: 1.0, k: 44, s: 2, u: 0, mutWorst: 90, worst: 'Round', churn: 3, issues: [] }
+    ];
+    const foreign = [{ id: 'chi', name: 'go-chi/chi' }, { id: 'pgx', name: 'jackc/pgx' }];
+    const funcs = [
+      { id: 'BestRule', exported: true, file: 'internal/pricing/apply.go', line: 61, sig: 'func BestRule(rules []Rule, l order.Line) (Rule, bool)', cc: 5, cog: 6, cov: 0, k: 0, s: 0, u: 6, churn: 4 },
+      { id: 'Apply', exported: true, file: 'internal/pricing/apply.go', line: 12, sig: 'func Apply(rules []Rule, l order.Line) (Quote, error)', cc: 4, cog: 3, cov: 0.92, k: 11, s: 1, u: 0, churn: 8 },
+      { id: 'Discount', exported: true, file: 'internal/pricing/discount.go', line: 5, sig: 'func Discount(q Quote, pct int) Quote', cc: 3, cog: 2, cov: 0.67, k: 4, s: 2, u: 1, churn: 3 },
+      { id: 'validate', exported: false, file: 'internal/pricing/apply.go', line: 40, sig: 'func validate(rules []Rule) error', cc: 6, cog: 5, cov: 0.83, k: 8, s: 2, u: 1, churn: 5 },
+      { id: 'applyTiered', exported: false, file: 'internal/pricing/tier.go', line: 20, sig: 'func applyTiered(tiers []Tier, qty int, unit money.Amount) (money.Amount, error)', cc: 11, cog: 14, cov: 0.71, k: 9, s: 7, u: 3, churn: 17 },
+      { id: 'applyFlat', exported: false, file: 'internal/pricing/flat.go', line: 8, sig: 'func applyFlat(r Rule, qty int, unit money.Amount) money.Amount', cc: 2, cog: 1, cov: 1.0, k: 5, s: 0, u: 0, churn: 2 }
+    ];
+    const types = [
+      { id: 'Rule', file: 'internal/pricing/types.go', line: 8, fields: ['Kind RuleKind', 'Tiers []Tier', 'Flat money.Amount'] },
+      { id: 'Tier', file: 'internal/pricing/types.go', line: 14, fields: ['Floor int', 'Kind TierKind', 'Value int', 'Off money.Amount', 'Cap money.Amount'] },
+      { id: 'Quote', file: 'internal/pricing/types.go', line: 22, fields: ['Line order.Line', 'Total money.Amount', 'Rule Rule'] }
+    ];
+    const exts = [
+      { id: 'money.Sub', crap: 1.0, cov: 1.0, mut: 100 },
+      { id: 'money.Round', crap: 3.0, cov: 1.0, mut: 88 },
+      { id: 'money.Mul', crap: 1.0, cov: 1.0, mut: 100 },
+      { id: 'money.Percent', crap: 2.0, cov: 1.0, mut: 90 }
+    ];
+    const src = [
+      [18, '// applyTiered prices a line with the highest tier whose floor', 'n'],
+      [19, '// the quantity reaches. Tiers are sorted by Floor, ascending.', 'n'],
+      [20, 'func applyTiered(tiers []Tier, qty int, unit money.Amount) (money.Amount, error) {', 'n'],
+      [21, '    if len(tiers) == 0 {', 'c'],
+      [22, '        return money.Zero, ErrNoTiers', 'c'],
+      [23, '    }', 'n'],
+      [24, '    if qty <= 0 {', 'c'],
+      [25, '        return money.Zero, ErrBadQty', 'u'],
+      [26, '    }', 'n'],
+      [27, '    best := tiers[0]', 'c'],
+      [28, '    for _, t := range tiers[1:] {', 'c'],
+      [29, '        if qty >= t.Floor && t.Floor > best.Floor {', 'c'],
+      [30, '            best = t', 'c'],
+      [31, '        }', 'n'],
+      [32, '    }', 'n'],
+      [33, '    price := money.Mul(unit, qty)', 'c'],
+      [34, '    switch best.Kind {', 'c'],
+      [35, '    case Percent:', 'n'],
+      [36, '        if best.Value > 100 {', 'c'],
+      [37, '            return money.Zero, ErrBadTier', 'u'],
+      [38, '        }', 'n'],
+      [39, '        price = money.Percent(price, 100-best.Value)', 'c'],
+      [40, '    case Fixed:', 'n'],
+      [41, '        price = money.Sub(price, money.Mul(best.Off, qty))', 'u'],
+      [42, '    case Capped:', 'n'],
+      [43, '        if price > best.Cap {', 'u'],
+      [44, '            price = best.Cap', 'u'],
+      [45, '        }', 'n'],
+      [46, '    }', 'n'],
+      [47, '    return money.Round(price), nil', 'c'],
+      [48, '}', 'n']
+    ];
+    const notes = {
+      22: [{ k: 's', title: '1 mutant survived', detail: 'ErrNoTiers → nil', why: 'No test checks which error comes back for an empty tier list.' }],
+      25: [{ k: 'u', title: 'Never run by tests', detail: 'qty <= 0', why: 'Add a test with qty 0 and one with qty −1.' }],
+      28: [{ k: 's', title: '1 mutant survived', detail: 'tiers[1:] → tiers[0:]', why: 'Likely equivalent: re-checking tier 0 changes nothing. Mark it equivalent or drop the slice.' }],
+      29: [{ k: 's', title: '3 mutants survived', detail: '>= → >   ·   && → ||   ·   > → >=', why: 'No test puts qty exactly on a tier floor, or uses two tiers with the same floor.' }],
+      34: [{ k: 'n', title: 'Note from you · 2 days ago', detail: '', why: 'Split by Kind into applyPercent / applyFixed / applyCapped. Each drops to CC 3 or less and is testable on its own.' }],
+      36: [{ k: 's', title: '1 mutant survived', detail: '> → >=', why: 'No test uses a Percent tier with Value exactly 100.' }],
+      41: [{ k: 'u', title: 'Fixed and Capped tiers never run', detail: 'lines 41–44 · 3 mutation sites skipped', why: 'No test builds a Fixed or a Capped tier.' }],
+      47: [{ k: 's', title: '1 mutant survived', detail: 'money.Round(price) → price', why: 'Every test uses whole-cent prices, so rounding never matters.' }]
+    };
+    return { pkgs, foreign, funcs, types, exts, src, notes };
+  }
+
+  toks(text, p) {
+    const KW = { func: 1, return: 1, if: 1, for: 1, range: 1, switch: 1, case: 1, default: 1, var: 1, type: 1, struct: 1, nil: 1, else: 1 };
+    const TY = { int: 1, error: 1, Tier: 1, Amount: 1 };
+    const out = [];
+    const re = /(\/\/.*$)|("(?:[^"\\]|\\.)*")|(\b\d+\b)|([A-Za-z_]\w*)|(\s+)|([^\sA-Za-z_\d"]+)/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      let c = p.plain;
+      if (m[1]) c = p.com;
+      else if (m[2]) c = p.str;
+      else if (m[3]) c = p.num;
+      else if (m[4]) {
+        const w = m[4];
+        const callNext = /^\(/.test(text.slice(re.lastIndex));
+        if (KW[w]) c = p.kw; else if (TY[w]) c = p.ty; else if (callNext) c = p.fn;
+      }
+      out.push({ t: m[0], c: c });
+    }
+    return out;
+  }
+
+  chipRows(chips, innerW) {
+    if (!chips.length) return 0;
+    let rows = 1, x = 0;
+    chips.forEach((c) => {
+      const w = c.t.length * 6.7 + 12;
+      if (x > 0 && x + 5 + w > innerW) { rows++; x = w; } else { x += (x > 0 ? 5 : 0) + w; }
+    });
+    return rows;
+  }
+
+  edge(a, b, hi, p) {
+    let d, head;
+    if (b.y >= a.y + a.h - 2) {
+      const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y, my = (y1 + y2) / 2;
+      d = 'M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + my + ' ' + x2 + ' ' + my + ' ' + x2 + ' ' + (y2 - 7);
+      head = x2 + ',' + y2 + ' ' + (x2 - 5) + ',' + (y2 - 8) + ' ' + (x2 + 5) + ',' + (y2 - 8);
+    } else if (b.x >= a.x + a.w) {
+      const x1 = a.x + a.w, y1 = a.y + a.h / 2, x2 = b.x, y2 = b.y + b.h / 2, mx = (x1 + x2) / 2;
+      d = 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + (x2 - 7) + ' ' + y2;
+      head = x2 + ',' + y2 + ' ' + (x2 - 8) + ',' + (y2 - 5) + ' ' + (x2 - 8) + ',' + (y2 + 5);
+    } else {
+      const x1 = a.x, y1 = a.y + a.h / 2, x2 = b.x + b.w, y2 = b.y + b.h / 2, mx = (x1 + x2) / 2;
+      d = 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + (x2 + 7) + ' ' + y2;
+      head = x2 + ',' + y2 + ' ' + (x2 + 8) + ',' + (y2 - 5) + ' ' + (x2 + 8) + ',' + (y2 + 5);
+    }
+    return { d: d, head: head, color: hi ? p.edgeHi : p.edge, w: hi ? 2 : 1.4 };
+  }
+
+  vline(x, y1, y2, hi, p) {
+    const down = y2 > y1;
+    const tip = down ? y2 - 7 : y2 + 7;
+    const back = down ? y2 - 8 : y2 + 8;
+    return { d: 'M' + x + ' ' + y1 + ' L' + x + ' ' + tip, head: x + ',' + y2 + ' ' + (x - 5) + ',' + back + ' ' + (x + 5) + ',' + back, color: hi ? p.edgeHi : p.edge, w: hi ? 2 : 1.4 };
+  }
+
+  renderVals() {
+    const self = this;
+    const s = this.state || {};
+    const p = this.th();
+    this._p = p;
+    const D = this.data();
+    const G = this.gloss();
+    const level = s.level || 0;
+    const mode = s.mode || 'combined';
+    const sel = s.sel || (level === 0 ? 'pricing' : 'applyTiered');
+    const set = (o) => self.setState(o);
+    const say = (msg) => {
+      self.setState({ toast: msg });
+      clearTimeout(self._tt);
+      self._tt = setTimeout(() => self.setState({ toast: null }), 4500);
+    };
+    const gradeOf = (m) => {
+      const cg = self.gCrap(m.crap), mg = self.gMut(m.mutW), vg = self.gCov(m.cov);
+      if (mode === 'crap') return cg;
+      if (mode === 'coverage') return vg;
+      if (mode === 'mutation') return mg;
+      return Math.round((cg + mg) / 2);
+    };
+    const sevCol = (i) => p.g5[i];
+    const goLevel = (lv, id) => set({ level: lv, sel: id, tip: null, pin: null });
+    const openPkg = (id) => { if (id === 'pricing') goLevel(1, 'applyTiered'); else say('This mockup only fills in internal/pricing. In the real tool every package opens.'); };
+    const openFn = (id) => { if (id === 'applyTiered') goLevel(2, 'applyTiered'); else say('Sample source is only written for applyTiered. In the real tool every function opens.'); };
+
+    const funcsById = {};
+    D.funcs.forEach((f) => { f.crap = self.crapOf(f.cc, f.cov); f.mut = self.mutOf(f.k, f.s); funcsById[f.id] = f; });
+    const pkgById = {};
+    D.pkgs.forEach((pk) => { pkgById[pk.id] = pk; });
+    const extById = {};
+    D.exts.forEach((e) => { extById[e.id] = e; });
+
+    const pkgCard = (pk, w) => ({
+      kind: 'card', id: pk.id, w: w, h: 44 + pk.issues.length * 24, m: { crap: pk.crapMax, cov: pk.cov, mutW: pk.mutWorst },
+      title: pk.name, pure: pk.pure, hasVis: false, vis: '',
+      issues: pk.issues.map((x) => ({ t: x[0], c: sevCol(x[1]) })), hasChips: false, chips: [],
+      aria: pk.name + ' package. Double-click to open.', open: () => openPkg(pk.id)
+    });
+    const fnCard = (f, w) => {
+      const chips = [];
+      if (f.cov === 0) chips.push({ t: 'untested', bg: self.hexA(p.red, 0.18), fg: p.red });
+      if (f.crap > 8) { const c = self.gCol(self.gCrap(f.crap)); chips.push({ t: 'CRAP ' + f.crap.toFixed(1), bg: self.hexA(c, 0.18), fg: c }); }
+      if (f.s > 0) { const c = f.s > 2 ? p.red : p.yellow; chips.push({ t: f.s + ' survived', bg: self.hexA(c, 0.18), fg: c }); }
+      const rows = self.chipRows(chips, w - 24);
+      return {
+        kind: 'card', id: f.id, w: w, h: 44 + (rows ? 6 + rows * 18 + (rows - 1) * 4 : 0), m: { crap: f.crap, cov: f.cov, mutW: f.mut },
+        title: f.id, pure: false, hasVis: true, vis: f.exported ? '+' : '−',
+        issues: [], hasChips: chips.length > 0, chips: chips,
+        aria: f.id + ' function. Double-click to show code.', open: () => openFn(f.id)
+      };
+    };
+    const pill = (id, title, w, h, m, open, kindTag) => ({ kind: 'pill', id: id, w: w, h: h, m: m, title: title, tag: kindTag, aria: title, open: open });
+
+    const place = (rows, y0, gap) => {
+      let y = y0;
+      rows.forEach((row) => {
+        let rh = 0;
+        row.forEach((n) => { n.y = y; rh = Math.max(rh, n.h); });
+        y += rh + gap;
+      });
+      return y - gap;
+    };
+
+    let raw = [];
+    let edges = [];
+    let edgeList = [];
+    let caption = '';
+    let box = null;
+    let code = null;
+
+    if (level === 0) {
+      caption = 'github.com/acme/ledger · packages · arrows show imports · sample data';
+      const W = 236, cx = [290, 530, 770];
+      const c = (id, col) => { const n = pkgCard(pkgById[id], W); n.x = cx[col] - W / 2; return n; };
+      const rows = [[c('ledgerd', 1)], [c('httpapi', 0), c('store', 2)], [c('order', 1)], [c('pricing', 0)], [c('money', 1)]];
+      place(rows, 56, 72);
+      const httpapi = rows[1][0], store = rows[1][1];
+      const chi = pill('chi', 'go-chi/chi', 118, 30, null, () => say('External modules are not analyzed; they are shown for context.'), 'foreign');
+      chi.x = 24; chi.y = httpapi.y + (httpapi.h - 30) / 2;
+      const pgx = pill('pgx', 'jackc/pgx', 118, 30, null, () => say('External modules are not analyzed; they are shown for context.'), 'foreign');
+      pgx.x = 918; pgx.y = store.y + (store.h - 30) / 2;
+      raw = [].concat(rows[0], rows[1], rows[2], rows[3], rows[4], [chi, pgx]);
+      edgeList = [['ledgerd', 'httpapi'], ['ledgerd', 'store'], ['httpapi', 'order'], ['httpapi', 'pricing'], ['store', 'order'], ['order', 'pricing'], ['order', 'money'], ['pricing', 'money'], ['httpapi', 'chi'], ['store', 'pgx']];
+    } else if (level === 1) {
+      caption = 'Inside internal/pricing · arrows show calls · sample data';
+      const pk = pkgById.pricing;
+      box = { x: 16, y: 44, w: 1028, h: 0, label: pk.name, pure: true, m: { crap: pk.crapMax, cov: pk.cov, mutW: pk.mutWorst }, id: 'pricing', sub: 'types' };
+      const W = 200, colX = [48, 303, 558, 813];
+      const f = (id, col) => { const n = fnCard(funcsById[id], W); n.x = colX[col]; return n; };
+      const rows = [[f('BestRule', 0), f('Apply', 1), f('Discount', 3)], [f('validate', 0), f('applyTiered', 1), f('applyFlat', 2)]];
+      const bottom = place(rows, box.y + 64, 64);
+      box.h = bottom + 28 - box.y;
+      let tx = box.x + 316;
+      const typePills = D.types.map((t) => {
+        const w = Math.round(t.id.length * 7.4 + 26);
+        const n = pill(t.id, t.id, w, 26, null, () => say('Type views (fields, usages, implemented interfaces) come later in the real tool.'), 'type');
+        n.x = tx; n.y = box.y + 9; tx += w + 8;
+        return n;
+      });
+      const py = box.y + box.h + 56;
+      const extAt = { 'money.Sub': 60, 'money.Round': 232, 'money.Mul': 560, 'money.Percent': 830 };
+      const extPills = D.exts.map((e) => {
+        const n = pill(e.id, e.id, 150, 30, { crap: e.crap, cov: e.cov, mutW: e.mut }, () => say('Opening functions in other packages works in the real tool.'), 'ext');
+        n.x = extAt[e.id]; n.y = py;
+        return n;
+      });
+      raw = [].concat(rows[0], rows[1], typePills, extPills);
+      edgeList = [['Apply', 'validate'], ['Apply', 'applyTiered'], ['Apply', 'applyFlat'], ['BestRule', 'validate'], ['Discount', 'money.Percent'], ['applyTiered', 'money.Sub'], ['applyTiered', 'money.Round'], ['applyTiered', 'money.Mul'], ['applyTiered', 'money.Percent'], ['applyFlat', 'money.Mul']];
+    } else {
+      caption = 'Called by (left) and calls (right) · sample data';
+      const fn = funcsById.applyTiered;
+      box = { x: 16, y: 100, w: 1028, h: 696, label: 'applyTiered', pure: false, m: { crap: fn.crap, cov: fn.cov, mutW: fn.mut }, id: 'applyTiered', sub: 'internal/pricing/tier.go · lines 18–48', hasLegend: true };
+      code = { x: 28, y: 144, w: 1004, h: 640 };
+      const ap = funcsById.Apply;
+      const caller = pill('Apply', 'Apply', 96, 30, { crap: ap.crap, cov: ap.cov, mutW: ap.mut }, () => goLevel(1, 'Apply'), 'func');
+      caller.x = 40; caller.y = 44;
+      const order = ['money.Mul', 'money.Percent', 'money.Sub', 'money.Round'];
+      let rx = 1044;
+      const callees = order.slice().reverse().map((id) => {
+        const e = extById[id];
+        const w = Math.round(id.length * 7.4 + 42);
+        rx -= w;
+        const n = pill(id, id, w, 30, { crap: e.crap, cov: e.cov, mutW: e.mut }, () => say('Opening functions in other packages works in the real tool.'), 'ext');
+        n.x = rx; n.y = 44; rx -= 10;
+        return n;
+      });
+      raw = [caller].concat(callees);
+      edges = [self.vline(caller.x + caller.w / 2, caller.y + caller.h, box.y, sel === 'Apply' || sel === 'applyTiered', p)]
+        .concat(callees.map((n) => self.vline(n.x + n.w / 2, box.y, n.y + n.h, sel === n.id || sel === 'applyTiered', p)));
+    }
+
+    const byId = {};
+    const nodes = raw.map((n) => {
+      const isSel = n.id === sel;
+      let col = null, cg = null, mg = null;
+      if (n.m) { cg = self.gCrap(n.m.crap); mg = self.gMut(n.m.mutW); col = self.gCol(gradeOf(n.m)); }
+      n.isCard = n.kind === 'card';
+      n.isPill = n.kind === 'pill';
+      n.hasDot = n.isPill && !!n.m;
+      n.fill = col ? self.hexA(col, p.tintA) : (n.tag === 'foreign' ? 'transparent' : p.surface2);
+      const base = col ? '1px solid ' + self.hexA(col, p.strokeA) : (n.tag === 'foreign' ? '1px dashed ' + p.border2 : '1px solid ' + p.border2);
+      n.border = isSel ? '2px solid ' + p.accent : base;
+      n.shadow = isSel ? '0 0 0 4px ' + p.accentSoft + ', ' + p.shadow : 'none';
+      n.cDot = cg == null ? p.border2 : self.gCol(cg);
+      n.mDot = mg == null ? p.border2 : self.gCol(mg);
+      n.pillFg = n.tag === 'foreign' ? p.muted : p.text;
+      n.radius = n.isPill ? Math.round(n.h / 2) : 10;
+      n.pad = n.isPill ? '0 12px' : '12px';
+      n.issues = n.issues || [];
+      n.chips = n.chips || [];
+      n.pick = () => set({ sel: n.id, tip: null, pin: null });
+      byId[n.id] = n;
+      return n;
+    });
+    if (level < 2) edges = edgeList.filter((e) => byId[e[0]] && byId[e[1]]).map((e) => self.edge(byId[e[0]], byId[e[1]], e[0] === sel || e[1] === sel, p));
+
+    let boxOut = { x: 0, y: 0, w: 0, h: 0, fill: 'transparent', border: 'none', label: '', pure: false, cDot: p.border2, mDot: p.border2, pick: () => {}, sub: '', hasLegend: false };
+    if (box) {
+      const bc = self.gCol(gradeOf(box.m));
+      const isSel = sel === box.id && level === 1;
+      boxOut = {
+        x: box.x, y: box.y, w: box.w, h: box.h, label: box.label, pure: box.pure, sub: box.sub, hasLegend: !!box.hasLegend,
+        fill: self.hexA(bc, p.boxA),
+        border: isSel ? '2px solid ' + p.accent : '1px solid ' + self.hexA(bc, 0.35),
+        cDot: self.gCol(self.gCrap(box.m.crap)), mDot: self.gCol(self.gMut(box.m.mutW)),
+        pick: () => set({ sel: box.id, tip: null, pin: null })
+      };
+    }
+
+    const rowsFrom = (list) => list.map((r) => {
+      const key = r[0];
+      const gl = G[key];
+      return {
+        label: r[1], value: r[2], chip: r[3] == null ? 'transparent' : self.gCol(r[3]),
+        open: s.tip === key || s.pin === key, pinned: s.pin === key,
+        tTitle: gl.title, tBody: gl.body, tGood: gl.good, hasLink: !!gl.link, link: gl.link || '#', linkText: gl.linkText,
+        aria: 'What does ' + r[1] + ' mean?',
+        enter: () => set({ tip: key }),
+        leave: () => set({ tip: null }),
+        toggle: () => set({ pin: s.pin === key ? null : key }),
+        close: () => set({ pin: null, tip: null })
+      };
+    });
+    const copyWith = (prompt) => () => {
+      try { navigator.clipboard.writeText(prompt).catch(() => {}); } catch (e) {}
+      say('Copied: “' + prompt.slice(0, 130) + '…”');
+    };
+    const sendWith = (what) => () => say('Sent ' + what + ' to Claude Code. qtldr wrote .qtldr/focus.json, and the agent reads it with the get_focus MCP tool.');
+
+    let insp = { kindLabel: '', title: '', sub: '', hasSig: false, sig: '', hasTag: false, tag: '', tagBg: p.surface2, tagFg: p.muted, hasRows: false, rows: [], hasList: false, listTitle: '', list: [], hasPrimary: false, primaryLabel: '', primaryGo: () => {}, hasEditors: false, editors: [], copy: () => {}, send: () => {} };
+    const pk = pkgById[sel];
+    const fn = funcsById[sel];
+    const ty = D.types.filter((x) => x.id === sel)[0];
+    const ex = extById[sel];
+    const fo = D.foreign.filter((x) => x.id === sel)[0];
+
+    if (pk) {
+      const mp = self.mutOf(pk.k, pk.s);
+      const mutVal = pk.noMut ? 'not measured' : (mp + '%');
+      insp = Object.assign(insp, {
+        kindLabel: 'Package', title: pk.name, sub: 'github.com/acme/ledger/' + pk.name + ' · ' + pk.funcs + ' funcs · ' + pk.types + ' types',
+        hasTag: true, tag: pk.pure ? 'λ pure core' : 'effectful shell', tagBg: pk.pure ? p.accentSoft : p.surface2, tagFg: pk.pure ? p.accent : p.muted,
+        hasRows: true,
+        rows: rowsFrom([
+          ['crap', 'CRAP max', pk.crapMax.toFixed(1), self.gCrap(pk.crapMax)],
+          ['crapmu', 'CRAP average', pk.crapMu.toFixed(1), self.gCrap(pk.crapMu)],
+          ['coverage', 'Coverage', self.pct(pk.cov), self.gCov(pk.cov)],
+          ['mutation', 'Mutation score', mutVal, pk.noMut ? 1 : self.gMut(mp)],
+          ['survived', 'Surviving mutants', pk.noMut ? '—' : String(pk.s), null],
+          ['uncovered', 'Not-covered mutants', pk.noMut ? '—' : String(pk.u), null],
+          ['churn', 'Churn, 12 months', pk.churn + ' commits', null]
+        ]),
+        hasList: true,
+        listTitle: pk.id === 'pricing' ? 'Riskiest functions' : 'Riskiest function',
+        list: pk.id === 'pricing'
+          ? [
+            { a: 'BestRule', b: 'no tests run it', c: '30.0', cColor: self.gCol(2), go: () => goLevel(1, 'BestRule') },
+            { a: 'applyTiered', b: '7 mutants survived', c: '14.0', cColor: self.gCol(4), go: () => goLevel(1, 'applyTiered') },
+            { a: 'validate', b: '2 mutants survived', c: '6.2', cColor: self.gCol(8), go: () => goLevel(1, 'validate') }
+          ]
+          : [{ a: pk.worst, b: 'highest CRAP in package', c: pk.crapMax.toFixed(1), cColor: self.gCol(self.gCrap(pk.crapMax)), go: () => openPkg(pk.id) }],
+        hasPrimary: level === 0, primaryLabel: 'Open package', primaryGo: () => openPkg(pk.id),
+        copy: copyWith('Improve package ' + pk.name + ': CRAP max ' + pk.crapMax.toFixed(1) + ' (' + pk.worst + '), coverage ' + self.pct(pk.cov) + ', mutation ' + mutVal + '. Start with the riskiest function, kill surviving mutants with focused tests, then reduce complexity. Verify with: qtldr check ' + pk.name),
+        send: sendWith(pk.name)
+      });
+    } else if (fn) {
+      const loc = fn.file + ':' + fn.line;
+      const survivors = fn.id === 'applyTiered'
+        ? [
+          { a: 'L29', b: '>= → >  ·  && → ||  ·  > → >=', c: '3', cColor: p.yellow, go: () => openFn('applyTiered') },
+          { a: 'L22', b: 'ErrNoTiers → nil', c: '1', cColor: p.yellow, go: () => openFn('applyTiered') },
+          { a: 'L36', b: '> → >=', c: '1', cColor: p.yellow, go: () => openFn('applyTiered') },
+          { a: 'L47', b: 'money.Round(price) → price', c: '1', cColor: p.yellow, go: () => openFn('applyTiered') }
+        ]
+        : [];
+      const cmd = (ed) => ed === 'nvim' ? 'nvim +' + fn.line + ' ' + fn.file : ed + ' -g ' + loc;
+      const prompt = 'Improve pricing.' + fn.id + ' (' + loc + '). CRAP ' + fn.crap.toFixed(1) + ' (target 8 or less), CC ' + fn.cc + ', coverage ' + self.pct(fn.cov) + ', ' + fn.s + ' surviving and ' + fn.u + ' not-covered mutants. Kill the survivors with focused tests first, then reduce complexity. Verify with: qtldr check ' + fn.id;
+      insp = Object.assign(insp, {
+        kindLabel: fn.exported ? 'Function · exported' : 'Function · unexported', title: fn.id, sub: loc,
+        hasSig: true, sig: fn.sig,
+        hasTag: true, tag: 'λ pure', tagBg: p.accentSoft, tagFg: p.accent,
+        hasRows: true,
+        rows: rowsFrom([
+          ['crap', 'CRAP', fn.crap.toFixed(1), self.gCrap(fn.crap)],
+          ['cc', 'Cyclomatic (CC)', String(fn.cc), null],
+          ['cognitive', 'Cognitive', String(fn.cog), null],
+          ['coverage', 'Coverage', self.pct(fn.cov), self.gCov(fn.cov)],
+          ['mutation', 'Mutation score', fn.mut == null ? 'no data' : fn.mut + '%', self.gMut(fn.mut)],
+          ['survived', 'Surviving mutants', String(fn.s), null],
+          ['uncovered', 'Not-covered mutants', String(fn.u), null],
+          ['churn', 'Churn, 12 months', fn.churn + ' commits', null]
+        ]),
+        hasList: survivors.length > 0, listTitle: 'Surviving mutants', list: survivors,
+        hasPrimary: true,
+        primaryLabel: level === 2 && fn.id === 'applyTiered' ? 'Re-run mutation for this function' : 'Show code',
+        primaryGo: level === 2 && fn.id === 'applyTiered'
+          ? () => say('Would run: qtldr mutate --func applyTiered. Only changed functions are retested; unchanged ones keep their results.')
+          : () => openFn(fn.id),
+        hasEditors: true,
+        editors: [
+          { label: 'VS Code', go: () => say('Would run: ' + cmd('code')) },
+          { label: 'Neovim', go: () => say('Would run: ' + cmd('nvim')) },
+          { label: 'Cursor', go: () => say('Would run: ' + cmd('cursor')) }
+        ],
+        copy: copyWith(prompt), send: sendWith('pricing.' + fn.id)
+      });
+    } else if (ty) {
+      insp = Object.assign(insp, {
+        kindLabel: 'Type · struct', title: ty.id, sub: ty.file + ':' + ty.line,
+        hasList: true, listTitle: 'Fields',
+        list: ty.fields.map((f) => { const parts = f.split(' '); return { a: parts[0], b: parts.slice(1).join(' '), c: '', cColor: p.muted, go: () => {} }; }),
+        hasPrimary: true, primaryLabel: 'Show usages', primaryGo: () => say('Usages and implemented interfaces come from go/types in the real tool.'),
+        copy: copyWith('Review type pricing.' + ty.id + ' (' + ty.file + ':' + ty.line + ') and its usages.'), send: sendWith('pricing.' + ty.id)
+      });
+    } else if (ex) {
+      insp = Object.assign(insp, {
+        kindLabel: 'Function · other package', title: ex.id, sub: 'internal/money',
+        hasRows: true,
+        rows: rowsFrom([
+          ['crap', 'CRAP', ex.crap.toFixed(1), self.gCrap(ex.crap)],
+          ['coverage', 'Coverage', self.pct(ex.cov), self.gCov(ex.cov)],
+          ['mutation', 'Mutation score', ex.mut + '%', self.gMut(ex.mut)]
+        ]),
+        hasPrimary: true, primaryLabel: 'Open in internal/money', primaryGo: () => say('Opening functions in other packages works in the real tool.'),
+        copy: copyWith('Review ' + ex.id + ' in internal/money.'), send: sendWith(ex.id)
+      });
+    } else if (fo) {
+      insp = Object.assign(insp, {
+        kindLabel: 'External module', title: fo.name, sub: 'Not analyzed. Shown so you can see what the code depends on.',
+        hasPrimary: true, primaryLabel: 'Hide from diagram', primaryGo: () => say('Would add ' + fo.name + ' to the hide list in .qtldr.toml.'),
+        copy: copyWith('List every place the code imports ' + fo.name + '.'), send: sendWith(fo.name)
+      });
+    }
+
+    let lines = [];
+    if (level === 2) {
+      lines = D.src.map((row) => {
+        const n = row[0], txt = row[1], st = row[2];
+        const list = D.notes[n] || [];
+        const ns = list.map((nt) => {
+          const c = nt.k === 's' ? p.yellow : nt.k === 'u' ? p.red : p.accent;
+          return {
+            badge: nt.k === 's' ? 'SURVIVED' : nt.k === 'u' ? 'NOT COVERED' : 'NOTE',
+            badgeBg: c, bg: self.hexA(c, p.dark ? 0.1 : 0.08), bd: self.hexA(c, 0.35),
+            title: nt.title, detail: nt.detail, why: nt.why
+          };
+        });
+        const hasSurv = list.some((nt) => nt.k === 's');
+        return {
+          n: n,
+          toks: self.toks(txt, p),
+          gut: st === 'c' ? p.green : st === 'u' ? p.red : 'transparent',
+          bg: st === 'u' ? self.hexA(p.red, 0.09) : hasSurv ? self.hexA(p.yellow, 0.08) : 'transparent',
+          notes: ns
+        };
+      });
+    }
+
+    const crumbs = [{ label: 'ledger', sep: false, link: level > 0, here: level === 0, go: () => goLevel(0, 'pricing') }];
+    if (level >= 1) crumbs.push({ label: 'internal/pricing', sep: true, link: level > 1, here: level === 1, go: () => goLevel(1, 'applyTiered') });
+    if (level >= 2) crumbs.push({ label: 'applyTiered', sep: true, link: false, here: true, go: () => {} });
+
+    const modes = [['combined', 'Combined'], ['crap', 'CRAP'], ['coverage', 'Coverage'], ['mutation', 'Mutation']].map((m) => ({
+      label: m[1], pressed: mode === m[0],
+      bg: mode === m[0] ? p.accent : 'transparent', fg: mode === m[0] ? p.onAccent : p.muted,
+      pick: () => set({ mode: m[0] })
+    }));
+
+    const all = this.themes();
+    const themeOptions = Object.keys(all).map((k) => ({ id: k, name: all[k].name }));
+
+    const gl = G.grade;
+    const legend = {
+      open: s.tip === 'grade' || s.pin === 'grade',
+      title: gl.title, body: gl.body, good: gl.good, link: gl.link, linkText: gl.linkText,
+      enter: () => set({ tip: 'grade' }), leave: () => set({ tip: null }),
+      toggle: () => set({ pin: s.pin === 'grade' ? null : 'grade' })
+    };
+
+    return {
+      p: p,
+      themeId: p.id,
+      themeOptions: themeOptions,
+      pickTheme: (e) => set({ theme: e.target.value }),
+      crumbs: crumbs,
+      modes: modes,
+      caption: caption,
+      showUp: level > 0,
+      goUp: () => goLevel(level - 1, level === 2 ? 'applyTiered' : 'pricing'),
+      hasBox: !!box,
+      box: boxOut,
+      nodes: nodes,
+      edges: edges,
+      isSource: level === 2,
+      code: code || { x: 0, y: 0, w: 0, h: 0 },
+      lines: lines,
+      srcLegend: [{ c: p.green, t: 'covered' }, { c: p.red, t: 'not covered' }, { c: p.yellow, t: 'survived' }, { c: p.accent, t: 'note' }],
+      insp: insp,
+      hasToast: !!s.toast,
+      toast: s.toast || '',
+      swatches: [1, 3, 5, 7, 9].map((g) => ({ c: self.gCol(g) })),
+      legend: legend
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+qtldr-starter.zip
+.playwright/
+/web/node_modules/
+# qtldr state (anchored anywhere so the fixture's is ignored too)
+**/.qtldr/snapshot.json
+**/.qtldr/focus.json
+**/.qtldr/cache/
+**/.qtldr/logs/
+# coverage output left by crap4go runs on the fixture
+testdata/ledger/target/

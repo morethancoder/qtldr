@@ -1,0 +1,1214 @@
+{
+  "nodes": [
+    {
+      "id": "github.com/acme/ledger",
+      "kind": "module",
+      "name": "ledger"
+    },
+    {
+      "id": "github.com/acme/ledger/cmd/ledgerd",
+      "kind": "package",
+      "name": "cmd/ledgerd",
+      "parent": "github.com/acme/ledger",
+      "dir": "cmd/ledgerd"
+    },
+    {
+      "id": "github.com/acme/ledger/cmd/ledgerd.addr",
+      "kind": "func",
+      "name": "addr",
+      "parent": "github.com/acme/ledger/cmd/ledgerd",
+      "file": "cmd/ledgerd/main.go",
+      "line": 30,
+      "end_line": 35,
+      "exported": false,
+      "signature": "func addr() string",
+      "body_hash": "sha256:712b2b985e4c1bf6619fa02bfeae9c3dccffce6f56a355a1c2ab602ad5efeed4"
+    },
+    {
+      "id": "github.com/acme/ledger/cmd/ledgerd.main",
+      "kind": "func",
+      "name": "main",
+      "parent": "github.com/acme/ledger/cmd/ledgerd",
+      "file": "cmd/ledgerd/main.go",
+      "line": 14,
+      "end_line": 18,
+      "exported": false,
+      "signature": "func main()",
+      "body_hash": "sha256:b51462a94f7c5e476feee11e64dcf6ec5f4df24b56d90a0d048bc158169ee419"
+    },
+    {
+      "id": "github.com/acme/ledger/cmd/ledgerd.run",
+      "kind": "func",
+      "name": "run",
+      "parent": "github.com/acme/ledger/cmd/ledgerd",
+      "file": "cmd/ledgerd/main.go",
+      "line": 20,
+      "end_line": 28,
+      "exported": false,
+      "signature": "func run(ctx context.Context, listen string) error",
+      "body_hash": "sha256:b0c33fff18777ffb212882d0432463f871978f9215242e3bc2538ce9a52b6423"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi",
+      "kind": "package",
+      "name": "internal/httpapi",
+      "parent": "github.com/acme/ledger",
+      "dir": "internal/httpapi"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.New",
+      "kind": "func",
+      "name": "New",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 35,
+      "end_line": 35,
+      "exported": true,
+      "signature": "func New(rules RuleSource) *Server",
+      "body_hash": "sha256:ca403423659aa76de47a8a603fc1ec382f7f9f6c72cdad7f277687fcf07bd5c9"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.RuleSource",
+      "kind": "type",
+      "name": "RuleSource",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 18,
+      "type_kind": "interface"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.Server",
+      "kind": "type",
+      "name": "Server",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 23,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "rules",
+          "type": "RuleSource"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.Server.Routes",
+      "kind": "func",
+      "name": "Server.Routes",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 38,
+      "end_line": 43,
+      "exported": true,
+      "recv": "Server",
+      "ptr_recv": true,
+      "signature": "func (s *Server) Routes() http.Handler",
+      "body_hash": "sha256:eb5c2059f0664bc8aa86115bb8601b1fe054b79db0f22ed578991f81a87fee18"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "kind": "func",
+      "name": "Server.handleQuote",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 49,
+      "end_line": 73,
+      "exported": false,
+      "recv": "Server",
+      "ptr_recv": true,
+      "signature": "func (s *Server) handleQuote(w http.ResponseWriter, req *http.Request)",
+      "body_hash": "sha256:a8ae5c101352ab005a1995e2bd0d78cd031b493f4bdee45765ea4f0547819b69"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.discountParam",
+      "kind": "func",
+      "name": "discountParam",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 87,
+      "end_line": 90,
+      "exported": false,
+      "signature": "func discountParam(q map[string][]string) (int, bool)",
+      "body_hash": "sha256:1050680cefd53ce162597310f4fe3da96fc76866e7ca6ad5ea1ecaf7bd0e9df0"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.first",
+      "kind": "func",
+      "name": "first",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 92,
+      "end_line": 97,
+      "exported": false,
+      "signature": "func first(vals []string, def string) string",
+      "body_hash": "sha256:6b66ee7a95634b9b2e69a3c0b17c6a7c0867f6d5654fd327bf7a5bded3b1319b"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.handleHealth",
+      "kind": "func",
+      "name": "handleHealth",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 45,
+      "end_line": 47,
+      "exported": false,
+      "signature": "func handleHealth(w http.ResponseWriter, _ *http.Request)",
+      "body_hash": "sha256:32303948f544941c8207376c10bb0c119e8005ceb8fa69aa920df2ac1b82254f"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.parseLine",
+      "kind": "func",
+      "name": "parseLine",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 75,
+      "end_line": 85,
+      "exported": false,
+      "signature": "func parseLine(sku string, q map[string][]string) (order.Line, error)",
+      "body_hash": "sha256:0b01445ac27d76cbc6866859052c21fc6347f0851d48563fb27df59648592651"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.quoteResponse",
+      "kind": "type",
+      "name": "quoteResponse",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 28,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "SKU",
+          "type": "string"
+        },
+        {
+          "name": "Qty",
+          "type": "int"
+        },
+        {
+          "name": "Total",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/httpapi.writeJSON",
+      "kind": "func",
+      "name": "writeJSON",
+      "parent": "github.com/acme/ledger/internal/httpapi",
+      "file": "internal/httpapi/httpapi.go",
+      "line": 99,
+      "end_line": 102,
+      "exported": false,
+      "signature": "func writeJSON(w http.ResponseWriter, v any)",
+      "body_hash": "sha256:5dc62317a3b8bbb1212b7998846d91c868e8ccfa28e525cf6d1747ede064b85d"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money",
+      "kind": "package",
+      "name": "internal/money",
+      "parent": "github.com/acme/ledger",
+      "dir": "internal/money"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Add",
+      "kind": "func",
+      "name": "Add",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 16,
+      "end_line": 16,
+      "exported": true,
+      "signature": "func Add(a, b Amount) Amount",
+      "body_hash": "sha256:2a81164f4f0a76008fa9910a3b52e7a9aa1e0ad2e4949788dfb24ff2c4d962fc"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Amount",
+      "kind": "type",
+      "name": "Amount",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 7,
+      "type_kind": "other"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Amount.String",
+      "kind": "func",
+      "name": "Amount.String",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 47,
+      "end_line": 50,
+      "exported": true,
+      "recv": "Amount",
+      "signature": "func (a Amount) String() string",
+      "body_hash": "sha256:b00028ee205a674cc0a1ccec5dac1bee79cdbc067f75d9d3d457552086b9e874"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Mul",
+      "kind": "func",
+      "name": "Mul",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 27,
+      "end_line": 27,
+      "exported": true,
+      "signature": "func Mul(a Amount, n int) Amount",
+      "body_hash": "sha256:afc4e8b4991f3d353c0721237e71b913d1efcdb304f7777bb660a77baad4b548"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Percent",
+      "kind": "func",
+      "name": "Percent",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 30,
+      "end_line": 35,
+      "exported": true,
+      "signature": "func Percent(a Amount, pct int) Amount",
+      "body_hash": "sha256:30cdc7f398637fefb2185255ef0ef30dab69e9d94521b749b1677756be019af7"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Round",
+      "kind": "func",
+      "name": "Round",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 38,
+      "end_line": 44,
+      "exported": true,
+      "signature": "func Round(a Amount) Amount",
+      "body_hash": "sha256:e2efbfb583b8a02022b53837fed935334fa6410d8cb398f2173739fe72c897d4"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/money.Sub",
+      "kind": "func",
+      "name": "Sub",
+      "parent": "github.com/acme/ledger/internal/money",
+      "file": "internal/money/money.go",
+      "line": 19,
+      "end_line": 24,
+      "exported": true,
+      "signature": "func Sub(a, b Amount) Amount",
+      "body_hash": "sha256:8b273265798ee0d78ad68a0c91c44dc89be392893ee67bc731b352035579589a"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order",
+      "kind": "package",
+      "name": "internal/order",
+      "parent": "github.com/acme/ledger",
+      "dir": "internal/order"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Line",
+      "kind": "type",
+      "name": "Line",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 25,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "SKU",
+          "type": "SKU"
+        },
+        {
+          "name": "Qty",
+          "type": "int"
+        },
+        {
+          "name": "Unit",
+          "type": "money.Amount"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Line.Subtotal",
+      "kind": "func",
+      "name": "Line.Subtotal",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 44,
+      "end_line": 44,
+      "exported": true,
+      "recv": "Line",
+      "signature": "func (l Line) Subtotal() money.Amount",
+      "body_hash": "sha256:7ef4404243cd5509c2c186ce5f6812b30c4e106e6c932289105b6bc4d1471bd2"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Merge",
+      "kind": "func",
+      "name": "Merge",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 69,
+      "end_line": 81,
+      "exported": true,
+      "signature": "func Merge(lines []Line) []Line",
+      "body_hash": "sha256:fbc2e9ed12833543defcb6b3aec76118e69e6a6fa473327e4aee2a5474e007e0"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.NewLine",
+      "kind": "func",
+      "name": "NewLine",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 39,
+      "end_line": 41,
+      "exported": true,
+      "signature": "func NewLine(sku string, qty int, unit money.Amount) Line",
+      "body_hash": "sha256:133aba34a0c49230702872f10f4b2f2029566ce5279593c2ae743ec25a9491d9"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Order",
+      "kind": "type",
+      "name": "Order",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 32,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "ID",
+          "type": "string"
+        },
+        {
+          "name": "Lines",
+          "type": "[]Line"
+        },
+        {
+          "name": "Status",
+          "type": "Status"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Order.Pay",
+      "kind": "func",
+      "name": "Order.Pay",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 84,
+      "end_line": 90,
+      "exported": true,
+      "recv": "Order",
+      "signature": "func (o Order) Pay() (Order, error)",
+      "body_hash": "sha256:1a8fbba175edfd106f167b81acb7ae1fac413996e92300b2af87dcec5e324bbf"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Order.Ship",
+      "kind": "func",
+      "name": "Order.Ship",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 93,
+      "end_line": 99,
+      "exported": true,
+      "recv": "Order",
+      "signature": "func (o Order) Ship() (Order, error)",
+      "body_hash": "sha256:2c56a75f052c87f190dd7ea5fec0e8619123ddc814731fea34cc449221eb26c8"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Order.Total",
+      "kind": "func",
+      "name": "Order.Total",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 47,
+      "end_line": 53,
+      "exported": true,
+      "recv": "Order",
+      "signature": "func (o Order) Total() money.Amount",
+      "body_hash": "sha256:b7e9320bf7e929bbeef446eea8d1414baabc5b04f5db1412a54ca07c473df406"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Order.Validate",
+      "kind": "func",
+      "name": "Order.Validate",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 56,
+      "end_line": 66,
+      "exported": true,
+      "recv": "Order",
+      "signature": "func (o Order) Validate() error",
+      "body_hash": "sha256:41dcb329f1ce23afe15d4abb12662e2da66f7ecf0dd88bd462bf67b97da01600"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.SKU",
+      "kind": "type",
+      "name": "SKU",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 22,
+      "type_kind": "other"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Status",
+      "kind": "type",
+      "name": "Status",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 12,
+      "type_kind": "other"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/order.Status.Label",
+      "kind": "func",
+      "name": "Status.Label",
+      "parent": "github.com/acme/ledger/internal/order",
+      "file": "internal/order/order.go",
+      "line": 102,
+      "end_line": 113,
+      "exported": true,
+      "recv": "Status",
+      "signature": "func (s Status) Label() string",
+      "body_hash": "sha256:a5e9eb55cef5d9e25fc8f86ad8e612c6aafd467b3d55c46f61a563330abb20a4"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing",
+      "kind": "package",
+      "name": "internal/pricing",
+      "parent": "github.com/acme/ledger",
+      "dir": "internal/pricing"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.Apply",
+      "kind": "func",
+      "name": "Apply",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/apply.go",
+      "line": 9,
+      "end_line": 21,
+      "exported": true,
+      "signature": "func Apply(rules []Rule, l order.Line) (Quote, error)",
+      "body_hash": "sha256:d7bccbccf38fbfc4177cd086922fb74b81cfa621c7b0b6ccf3ad11e97f54c402"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.BestRule",
+      "kind": "func",
+      "name": "BestRule",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/apply.go",
+      "line": 49,
+      "end_line": 61,
+      "exported": true,
+      "signature": "func BestRule(rules []Rule, l order.Line) (Rule, bool)",
+      "body_hash": "sha256:4c6a4eff946ffdc05db9896d298dd9b67fab59921f2cb61c7348bbfe440004d9"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.Discount",
+      "kind": "func",
+      "name": "Discount",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/discount.go",
+      "line": 6,
+      "end_line": 12,
+      "exported": true,
+      "signature": "func Discount(q Quote, pct int) Quote",
+      "body_hash": "sha256:4efbb5370ae85a80933c5150c0a604de50ea1cffad7ae417b21d35d90519feb4"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.Quote",
+      "kind": "type",
+      "name": "Quote",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/types.go",
+      "line": 29,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "Line",
+          "type": "order.Line"
+        },
+        {
+          "name": "Total",
+          "type": "money.Amount"
+        },
+        {
+          "name": "Rule",
+          "type": "Rule"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.Rule",
+      "kind": "type",
+      "name": "Rule",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/types.go",
+      "line": 11,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "SKU",
+          "type": "order.SKU"
+        },
+        {
+          "name": "Kind",
+          "type": "RuleKind"
+        },
+        {
+          "name": "Priority",
+          "type": "int"
+        },
+        {
+          "name": "Tiers",
+          "type": "[]Tier"
+        },
+        {
+          "name": "Flat",
+          "type": "money.Amount"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.RuleKind",
+      "kind": "type",
+      "name": "RuleKind",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/types.go",
+      "line": 36,
+      "type_kind": "other"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.Tier",
+      "kind": "type",
+      "name": "Tier",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/types.go",
+      "line": 20,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "Floor",
+          "type": "int"
+        },
+        {
+          "name": "Kind",
+          "type": "TierKind"
+        },
+        {
+          "name": "Value",
+          "type": "int"
+        },
+        {
+          "name": "Off",
+          "type": "money.Amount"
+        },
+        {
+          "name": "Cap",
+          "type": "money.Amount"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.TierKind",
+      "kind": "type",
+      "name": "TierKind",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/tier.go",
+      "line": 9,
+      "type_kind": "other"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.applyFlat",
+      "kind": "func",
+      "name": "applyFlat",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/flat.go",
+      "line": 6,
+      "end_line": 11,
+      "exported": false,
+      "signature": "func applyFlat(r Rule, qty int, unit money.Amount) money.Amount",
+      "body_hash": "sha256:b596c2f1ce1f579aa4775bb118acd3b55fb782aeee2a9accbb65c53ec75c2ccd"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "kind": "func",
+      "name": "applyTiered",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/tier.go",
+      "line": 20,
+      "end_line": 48,
+      "exported": false,
+      "signature": "func applyTiered(tiers []Tier, qty int, unit money.Amount) (money.Amount, error)",
+      "body_hash": "sha256:c03c20278e814cded1fa60a5a73d4b149129b5d0c77c53cb2d6dc87358b9cf0b"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.price",
+      "kind": "func",
+      "name": "price",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/apply.go",
+      "line": 24,
+      "end_line": 29,
+      "exported": false,
+      "signature": "func price(r Rule, l order.Line) (money.Amount, error)",
+      "body_hash": "sha256:20dd590caa940e0863099d8880fa8c52c1b9b2988edf32740b836c2b5c3cff9a"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/pricing.validate",
+      "kind": "func",
+      "name": "validate",
+      "parent": "github.com/acme/ledger/internal/pricing",
+      "file": "internal/pricing/apply.go",
+      "line": 32,
+      "end_line": 46,
+      "exported": false,
+      "signature": "func validate(rules []Rule) error",
+      "body_hash": "sha256:0c76b193e8a5b7ac4f7709d5025c406af67e4506c16d2e8cb37622840b44b611"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store",
+      "kind": "package",
+      "name": "internal/store",
+      "parent": "github.com/acme/ledger",
+      "dir": "internal/store"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.Config",
+      "kind": "type",
+      "name": "Config",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 22,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "DSN",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.ConfigFromEnv",
+      "kind": "func",
+      "name": "ConfigFromEnv",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 32,
+      "end_line": 37,
+      "exported": true,
+      "signature": "func ConfigFromEnv() Config",
+      "body_hash": "sha256:3ba49ab149e04bdb46a0ab70abb6c95afb8ade7ff69bd9a01d7266024e695f9c"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.Open",
+      "kind": "func",
+      "name": "Open",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 40,
+      "end_line": 46,
+      "exported": true,
+      "signature": "func Open(ctx context.Context, cfg Config) (*Store, error)",
+      "body_hash": "sha256:41cda4ae475449dd3eaaf41a6a853ac632acb9f6bf0701a62872835d98ea6545"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.Store",
+      "kind": "type",
+      "name": "Store",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 27,
+      "type_kind": "struct",
+      "fields": [
+        {
+          "name": "conn",
+          "type": "*pgx.Conn"
+        }
+      ]
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.Store.Close",
+      "kind": "func",
+      "name": "Store.Close",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 49,
+      "end_line": 49,
+      "exported": true,
+      "recv": "Store",
+      "ptr_recv": true,
+      "signature": "func (s *Store) Close(ctx context.Context) error",
+      "body_hash": "sha256:891620b932eee4a57e72588d9370b0b8e534c10181c7be6e90a031fc5b785f87"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.Store.LoadRules",
+      "kind": "func",
+      "name": "Store.LoadRules",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 52,
+      "end_line": 68,
+      "exported": true,
+      "recv": "Store",
+      "ptr_recv": true,
+      "signature": "func (s *Store) LoadRules(ctx context.Context, sku order.SKU) ([]pricing.Rule, error)",
+      "body_hash": "sha256:9fe0ce18da27e28932f1f2bfa16cb9d775f6889ca1863b99bc3416662819cd67"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.redact",
+      "kind": "func",
+      "name": "redact",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 80,
+      "end_line": 87,
+      "exported": false,
+      "signature": "func redact(dsn string) string",
+      "body_hash": "sha256:e86ad7914d02844ac59901337355888aeef20c73d97672e245f34c0f78f9aa95"
+    },
+    {
+      "id": "github.com/acme/ledger/internal/store.scanRule",
+      "kind": "func",
+      "name": "scanRule",
+      "parent": "github.com/acme/ledger/internal/store",
+      "file": "internal/store/store.go",
+      "line": 70,
+      "end_line": 77,
+      "exported": false,
+      "signature": "func scanRule(rows pgx.Rows, sku order.SKU) (pricing.Rule, error)",
+      "body_hash": "sha256:4adccede454b7b8b98c15192d5f4e965271ca02d9d6b577b0de4b99dd6a9c4a2"
+    },
+    {
+      "id": "github.com/go-chi/chi/v5",
+      "kind": "external",
+      "name": "go-chi/chi"
+    },
+    {
+      "id": "github.com/jackc/pgx/v5",
+      "kind": "external",
+      "name": "jackc/pgx"
+    }
+  ],
+  "edges": [
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd",
+      "to": "github.com/acme/ledger/internal/httpapi",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd",
+      "to": "github.com/acme/ledger/internal/store",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.main",
+      "to": "github.com/acme/ledger/cmd/ledgerd.addr",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.main",
+      "to": "github.com/acme/ledger/cmd/ledgerd.run",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.run",
+      "to": "github.com/acme/ledger/internal/httpapi.New",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.run",
+      "to": "github.com/acme/ledger/internal/httpapi.Server.Routes",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.run",
+      "to": "github.com/acme/ledger/internal/store.ConfigFromEnv",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.run",
+      "to": "github.com/acme/ledger/internal/store.Open",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/cmd/ledgerd.run",
+      "to": "github.com/acme/ledger/internal/store.Store.Close",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi",
+      "to": "github.com/acme/ledger/internal/money",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi",
+      "to": "github.com/acme/ledger/internal/order",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi",
+      "to": "github.com/acme/ledger/internal/pricing",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi",
+      "to": "github.com/go-chi/chi/v5",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/httpapi.RuleSource.LoadRules",
+      "kind": "calls_dynamic"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/httpapi.discountParam",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/httpapi.parseLine",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/httpapi.writeJSON",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/money.Amount.String",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/pricing.Apply",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.Server.handleQuote",
+      "to": "github.com/acme/ledger/internal/pricing.Discount",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.discountParam",
+      "to": "github.com/acme/ledger/internal/httpapi.first",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.parseLine",
+      "to": "github.com/acme/ledger/internal/httpapi.first",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/httpapi.parseLine",
+      "to": "github.com/acme/ledger/internal/order.NewLine",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/money.Amount.String",
+      "to": "github.com/acme/ledger/internal/money.Round",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/order",
+      "to": "github.com/acme/ledger/internal/money",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/order.Line.Subtotal",
+      "to": "github.com/acme/ledger/internal/money.Mul",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/order.Order.Total",
+      "to": "github.com/acme/ledger/internal/money.Add",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/order.Order.Total",
+      "to": "github.com/acme/ledger/internal/order.Line.Subtotal",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing",
+      "to": "github.com/acme/ledger/internal/money",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing",
+      "to": "github.com/acme/ledger/internal/order",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.Apply",
+      "to": "github.com/acme/ledger/internal/pricing.price",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.Apply",
+      "to": "github.com/acme/ledger/internal/pricing.validate",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.BestRule",
+      "to": "github.com/acme/ledger/internal/pricing.validate",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.Discount",
+      "to": "github.com/acme/ledger/internal/money.Percent",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.applyFlat",
+      "to": "github.com/acme/ledger/internal/money.Mul",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "to": "github.com/acme/ledger/internal/money.Mul",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "to": "github.com/acme/ledger/internal/money.Percent",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "to": "github.com/acme/ledger/internal/money.Round",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "to": "github.com/acme/ledger/internal/money.Sub",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.price",
+      "to": "github.com/acme/ledger/internal/pricing.applyFlat",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/pricing.price",
+      "to": "github.com/acme/ledger/internal/pricing.applyTiered",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store",
+      "to": "github.com/acme/ledger/internal/money",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store",
+      "to": "github.com/acme/ledger/internal/order",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store",
+      "to": "github.com/acme/ledger/internal/pricing",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store",
+      "to": "github.com/jackc/pgx/v5",
+      "kind": "imports"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store.Open",
+      "to": "github.com/acme/ledger/internal/store.redact",
+      "kind": "calls"
+    },
+    {
+      "from": "github.com/acme/ledger/internal/store.Store.LoadRules",
+      "to": "github.com/acme/ledger/internal/store.scanRule",
+      "kind": "calls"
+    }
+  ],
+  "metrics": {
+    "github.com/acme/ledger/cmd/ledgerd.addr": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/cmd/ledgerd.main": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 5
+    },
+    "github.com/acme/ledger/cmd/ledgerd.run": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 9
+    },
+    "github.com/acme/ledger/internal/httpapi.New": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 1
+    },
+    "github.com/acme/ledger/internal/httpapi.Server.Routes": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/httpapi.Server.handleQuote": {
+      "cc": 6,
+      "cognitive": 5,
+      "loc": 25
+    },
+    "github.com/acme/ledger/internal/httpapi.discountParam": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 4
+    },
+    "github.com/acme/ledger/internal/httpapi.first": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/httpapi.handleHealth": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 3
+    },
+    "github.com/acme/ledger/internal/httpapi.parseLine": {
+      "cc": 3,
+      "cognitive": 2,
+      "loc": 11
+    },
+    "github.com/acme/ledger/internal/httpapi.writeJSON": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 4
+    },
+    "github.com/acme/ledger/internal/money.Add": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 1
+    },
+    "github.com/acme/ledger/internal/money.Amount.String": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 4
+    },
+    "github.com/acme/ledger/internal/money.Mul": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 1
+    },
+    "github.com/acme/ledger/internal/money.Percent": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/money.Round": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/money.Sub": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/order.Line.Subtotal": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 1
+    },
+    "github.com/acme/ledger/internal/order.Merge": {
+      "cc": 3,
+      "cognitive": 3,
+      "loc": 13
+    },
+    "github.com/acme/ledger/internal/order.NewLine": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 3
+    },
+    "github.com/acme/ledger/internal/order.Order.Pay": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/order.Order.Ship": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/order.Order.Total": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/order.Order.Validate": {
+      "cc": 5,
+      "cognitive": 5,
+      "loc": 11
+    },
+    "github.com/acme/ledger/internal/order.Status.Label": {
+      "cc": 5,
+      "cognitive": 1,
+      "loc": 12
+    },
+    "github.com/acme/ledger/internal/pricing.Apply": {
+      "cc": 4,
+      "cognitive": 4,
+      "loc": 13
+    },
+    "github.com/acme/ledger/internal/pricing.BestRule": {
+      "cc": 5,
+      "cognitive": 6,
+      "loc": 13
+    },
+    "github.com/acme/ledger/internal/pricing.Discount": {
+      "cc": 3,
+      "cognitive": 2,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/pricing.applyFlat": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/pricing.applyTiered": {
+      "cc": 11,
+      "cognitive": 11,
+      "loc": 29
+    },
+    "github.com/acme/ledger/internal/pricing.price": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/pricing.validate": {
+      "cc": 6,
+      "cognitive": 9,
+      "loc": 15
+    },
+    "github.com/acme/ledger/internal/store.ConfigFromEnv": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 6
+    },
+    "github.com/acme/ledger/internal/store.Open": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 7
+    },
+    "github.com/acme/ledger/internal/store.Store.Close": {
+      "cc": 1,
+      "cognitive": 0,
+      "loc": 1
+    },
+    "github.com/acme/ledger/internal/store.Store.LoadRules": {
+      "cc": 4,
+      "cognitive": 4,
+      "loc": 17
+    },
+    "github.com/acme/ledger/internal/store.redact": {
+      "cc": 4,
+      "cognitive": 2,
+      "loc": 8
+    },
+    "github.com/acme/ledger/internal/store.scanRule": {
+      "cc": 2,
+      "cognitive": 1,
+      "loc": 8
+    }
+  }
+}

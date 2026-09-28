@@ -1,0 +1,165 @@
+# qtldr glossary — the single source for UI "?" tooltips, `qtldr explain`, and the
+# `glossary` map attached to MCP results. Keep entries short: a tooltip is ~310px wide.
+#
+# Fields
+#   title:  heading shown in the tooltip
+#   short:  one sentence, used in MCP results and CLI one-liners
+#   body:   what it is / how it is computed (1-2 sentences)
+#   good:   which direction is better, and the targets qtldr uses
+#   links:  optional; each {text, url}. Shown as "text ↗". Verify URLs still resolve before release.
+#
+# Thresholds quoted here must match PLAN.md §3 [thresholds] defaults and §7.4 grade tables.
+# If a user changes thresholds in .qtldr.toml, the UI/MCP substitute {crap_max}, {coverage_min},
+# {mutation_min}, {cognitive_max}, {churn_months} with the configured values.
+
+schema: 1
+terms:
+  crap:
+    title: "CRAP — Change Risk Anti-Patterns"
+    short: "How risky a function is to change: complexity weighted by untested code."
+    body: "Complexity, weighted by how much of the function the tests never run. CRAP = CC² × (1 − coverage)³ + CC."
+    good: "Lower is better. 1–5 clean · 5–30 refactor or add tests · 30+ high risk. qtldr target: {crap_max} or less."
+    links:
+      - {text: "crap4go — reference implementation", url: "https://github.com/unclebob/crap4go"}
+
+  crap_avg:
+    title: "CRAP average (μ)"
+    short: "Mean CRAP across a package's functions."
+    body: "Mean CRAP of every function in the package. Box colors use the worst function instead, so one bad function is never hidden by many good ones."
+    good: "Lower is better. Compare with CRAP max to see whether the risk is spread out or in one place."
+
+  crap_max:
+    title: "CRAP max"
+    short: "The highest CRAP of any function in the package."
+    body: "The CRAP of the package's riskiest function. The inspector lists which function it is."
+    good: "Lower is better. qtldr target: {crap_max} or less."
+
+  cc:
+    title: "Cyclomatic complexity (CC)"
+    short: "Number of independent paths through a function."
+    body: "1 plus each if, for, range, case, select case, && and ||. It is the minimum number of tests needed to run every path."
+    good: "Lower is better. 5 or less is easy to test fully; above 10, split the function."
+    links:
+      - {text: "Wikipedia — Cyclomatic complexity", url: "https://en.wikipedia.org/wiki/Cyclomatic_complexity"}
+
+  cognitive:
+    title: "Cognitive complexity"
+    short: "How hard the code is to read; nesting costs extra."
+    body: "Like CC, but each level of nesting adds more, so an if inside a for inside a switch scores high."
+    good: "Lower is better. qtldr target: {cognitive_max} or less per function."
+    links:
+      - {text: "gocognit — Go implementation", url: "https://github.com/uudashr/gocognit"}
+
+  coverage:
+    title: "Statement coverage"
+    short: "Share of statements that ran at least once during go test."
+    body: "The share of statements executed by the tests. It shows code ran, not that its results were checked."
+    good: "Higher is better. qtldr target: {coverage_min}%+, and 100% on critical paths."
+    links:
+      - {text: "The Go Blog — The cover story", url: "https://go.dev/blog/cover"}
+
+  mutation:
+    title: "Mutation score"
+    short: "Share of small code changes the tests catch."
+    body: "qtldr makes small changes to the code (> to >=, + to −, && to ||) and reruns the tests. Score = killed ÷ (killed + survived)."
+    good: "Higher is better. qtldr target: {mutation_min}%+. Under 60% means tests run the code without really checking it."
+    links:
+      - {text: "Gremlins — mutation testing for Go", url: "https://github.com/go-gremlins/gremlins"}
+
+  killed:
+    title: "Killed mutants"
+    short: "Code changes that made at least one test fail."
+    body: "A mutant is killed when a test fails after the change. That is the good outcome: the tests noticed."
+    good: "Higher share is better."
+
+  survived:
+    title: "Surviving mutants"
+    short: "Code changes no test noticed."
+    body: "Changes to the code that every test still passed with. Each one is usually a missing assertion or an untested edge case."
+    good: "0 is the goal. Add a test that fails on the mutant, or mark it equivalent if it cannot change behavior."
+    links:
+      - {text: "Wikipedia — Mutation testing", url: "https://en.wikipedia.org/wiki/Mutation_testing"}
+
+  not_covered:
+    title: "Not-covered mutants"
+    short: "Mutation sites on lines no test runs, so they were never tried."
+    body: "These are coverage gaps, not a measure of test strength. They are not counted in the mutation score."
+    good: "0 is the goal. Cover the line first; the next run tests these mutants."
+
+  timed_out:
+    title: "Timed-out mutants"
+    short: "Changes that made the tests hang, usually an infinite loop."
+    body: "Shown for information. They are not counted as survived."
+    good: "No target."
+
+  equivalent:
+    title: "Equivalent mutant"
+    short: "A change that cannot alter behavior, so no test could catch it."
+    body: "Example: re-checking an element that was already handled. Mark it equivalent instead of writing a test."
+    good: "Mark and move on."
+
+  churn:
+    title: "Churn"
+    short: "How many commits touched this code in the last {churn_months} months."
+    body: "Counted from git log. v1 counts per file (labeled 'file churn'). Complex code that changes often is where bugs cluster."
+    good: "Low is calm. High churn plus high CRAP is the top refactoring target."
+    links:
+      - {text: "Code Maat — churn analysis", url: "https://github.com/adamtornhill/code-maat"}
+
+  fan:
+    title: "Fan-in / fan-out"
+    short: "Callers of this function / functions it calls."
+    body: "Fan-in counts callers; fan-out counts callees inside the module."
+    good: "High fan-in wants low CRAP and a high mutation score, since many callers break if it changes. High fan-out suggests it does too much."
+
+  loc:
+    title: "Lines of code"
+    short: "Source lines in the function, including comments and blank lines."
+    body: "From the function's first to last line."
+    good: "Shorter is usually easier to test. Over about 40 lines is a split candidate."
+
+  purity:
+    title: "Pure vs effectful (λ)"
+    short: "Pure: result depends only on inputs. Effectful: touches the outside world."
+    body: "qtldr marks a function effectful if it uses context, I/O, the clock, randomness, goroutines, channels or package-level variables, or calls something that does. This is a heuristic."
+    good: "Keep domain packages pure (λ) and push effects to the edges (cmd, http, store)."
+    links:
+      - {text: "Functional core, imperative shell", url: "https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell"}
+
+  grade:
+    title: "How box colors work"
+    short: "CRAP and mutation are graded 1–10 and averaged into the box color."
+    body: "Colors use the current theme's red, orange, yellow and green. A package takes the worst grade of anything inside it, and missing data counts as worst. λ marks pure code."
+    good: "Green everywhere. Follow red down the levels to find the cause."
+    links:
+      - {text: "Grading inspired by uml-viewer", url: "https://github.com/unclebob/uml-viewer"}
+
+  stale:
+    title: "Stale"
+    short: "The code changed after this number was measured."
+    body: "Shown with a dashed outline. The value is from before the change; re-run coverage or mutation to refresh it."
+    good: "Refresh before trusting it."
+
+  not_measured:
+    title: "Not measured"
+    short: "No data yet for this metric."
+    body: "Coverage or mutation has not run for this code, or the tests failed. For coloring, missing data counts as the worst grade."
+    good: "Run qtldr analyze --coverage or qtldr mutate for this scope."
+
+  covered_line:
+    title: "Covered line"
+    short: "Tests ran this line."
+    body: "Green gutter in the source view."
+    good: "—"
+
+  uncovered_line:
+    title: "Not-covered line"
+    short: "No test ran this line."
+    body: "Red gutter and tint in the source view."
+    good: "Add a test that reaches it."
+
+  partial_line:
+    title: "Partly covered line"
+    short: "Some statements on this line ran, others did not."
+    body: "Usually a condition where only one branch was tested."
+    good: "Test the other branch."

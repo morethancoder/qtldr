@@ -1,0 +1,50 @@
+# CLAUDE.md — working rules for building qtldr
+
+You are building **qtldr**, specified in `PLAN.md` (what to build, in what order) and `docs/UI.md` (how the web UI looks and behaves). Read both fully before writing code. When they disagree, PLAN.md wins for behavior and data, UI.md wins for visuals; note the conflict in `docs/decisions.md`.
+
+## Source files that are already final
+- `web/src/themes.json` — theme palettes. Do not change colors without being asked; add themes by appending.
+- `internal/glossary/terms.yaml` — every tooltip / `explain` / MCP glossary text. Add terms here; never hard-code explanations elsewhere.
+- `docs/mockup/` — the approved visual reference. Look, don't port.
+
+## How to work
+1. **Milestones in order** (PLAN.md §13): M0 → M5. Finish a milestone's acceptance checks before starting the next. At the end of each milestone, update the checklist at the bottom of this file and commit.
+2. **Verify, don't assume.** Every "verify at build time" item (PLAN.md §16) gets checked against the real tool or current docs, and the answer goes in `docs/decisions.md` (question · answer · how you checked · date). This includes Go/Node versions, Gremlins flags and JSON, go-sdk API, Shiki theme IDs, React Flow + ELK APIs, editor CLI flags, Claude Code hook format.
+3. **Never invent tool output in tests.** Gremlins JSON, coverage profiles from `go test`, crap4go output and Claude Code hook payloads used as fixtures must be captured from real runs and saved under `testdata/`. Hand-written inputs are fine only for pure parsers (e.g., a coverage profile with specific blocks), and must be labeled as such.
+4. **Keep the core pure.** `internal/model`, `internal/metrics`, the coverage-profile parser and mutation attribution take values and return values: no file, network, clock, env or globals. Tests for them are table-driven.
+5. **Small functions.** qtldr is checked by qtldr: CRAP ≤ 8 and cognitive ≤ 15 per function in `internal/`. Once M1 lands, run `go run ./cmd/qtldr check --changed` before each commit.
+6. **Tests first for metrics.** Grades, roll-ups, CRAP, coverage mapping and check scoping have exact rules in PLAN.md §7–8; write the table tests from those rules before the code.
+7. **Errors are specific.** Messages name the file, package or function, what went wrong, and what to run next. No silent fallbacks: missing data is shown as "not measured", never as zero.
+8. **The web build is committed.** After changing `web/src`, run the web build so `web/dist` matches; CI fails otherwise.
+9. **Ask before** adding a dependency not named in PLAN.md, changing a file format in PLAN.md §5, or dropping a feature from a milestone. Otherwise decide, and record non-obvious choices in `docs/decisions.md`.
+
+## Commands (fill in as they come to exist)
+```
+go test ./...                                         # all Go tests
+go test ./internal/lang/golang -run Golden -update    # regenerate testdata/golden (review the diff!)
+go vet ./... && go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+gocognit -over 15 internal cmd                        # cognitive limit until `qtldr check` exists (M1)
+go run ./cmd/qtldr -C testdata/ledger analyze         # scan the fixture (it has its own go.mod)
+go run ./cmd/qtldr -C testdata/ledger show applyTiered
+go run ./cmd/qtldr -C testdata/ledger worst --metric cognitive
+go run ./cmd/qtldr doctor
+# recapture parity fixtures (only when the fixture changes; commit the output):
+#   cd testdata/ledger && crap4go > ../crap4go/ledger.txt && rm -rf target
+#   cd testdata/ledger && gocognit -over -1 -json . > ../gocognit/ledger.json
+cd web && npm ci && npm run build                     # rebuild the embedded UI (M2)
+go run ./cmd/qtldr serve --open                       # (M2)
+```
+
+## Style
+- Go: standard library first; `gofmt`, `go vet`, `staticcheck` clean. Package names short and lower-case. Exported identifiers have doc comments.
+- TypeScript: strict mode; no `any` in app code; components small; colors only through theme tokens (never literal hex in components).
+- User-facing text (UI, CLI, errors): short, plain English, sentence case, no jargon without a `?` tooltip.
+
+## Progress checklist
+- [x] §0 module path chosen (`github.com/morethancoder/qtldr`)
+- [x] M0 skeleton & structure
+- [ ] M1 coverage, CRAP, check, hooks
+- [ ] M2 web UI
+- [ ] M3 mutation
+- [ ] M4 agents (MCP)
+- [ ] M5 breadth

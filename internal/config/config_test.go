@@ -1,0 +1,66 @@
+package config
+
+import (
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestDefault(t *testing.T) {
+	c := Default()
+	if c.Thresholds.CrapMax != 8 || c.Thresholds.CognitiveMax != 15 || c.Mutation.MaxFunctions != 40 {
+		t.Fatalf("thresholds: %+v, mutation: %+v", c.Thresholds, c.Mutation)
+	}
+	if c.Coverage.Timeout.Duration != 10*time.Minute || c.Editor.Preset != "vscode" {
+		t.Fatalf("coverage timeout %v, preset %q", c.Coverage.Timeout, c.Editor.Preset)
+	}
+	if len(c.Project.Include) != 1 || c.Project.Include[0] != "./..." {
+		t.Fatalf("include %v", c.Project.Include)
+	}
+}
+
+func TestLoadMissingFileGivesDefaults(t *testing.T) {
+	c, warns, err := Load(filepath.Join(t.TempDir(), FileName))
+	if err != nil || len(warns) != 0 || c.Project.BaseRef != "main" {
+		t.Fatalf("got %+v %v %v", c.Project, warns, err)
+	}
+}
+
+func TestParse(t *testing.T) {
+	cases := []struct {
+		name, text string
+		wantErr    string
+		wantWarn   string
+		check      func(Config) bool
+	}{
+		{name: "override", text: "[thresholds]\ncrap_max = 12\n", check: func(c Config) bool {
+			return c.Thresholds.CrapMax == 12 && c.Thresholds.CognitiveMax == 15
+		}},
+		{name: "unknown table", text: "[nope]\nx = 1\n", wantErr: `unknown table or key "nope"`},
+		{name: "unknown top-level key", text: "x = 1\n", wantErr: `unknown table or key "x"`},
+		{name: "unknown key", text: "[project]\nfoo = 1\n", wantWarn: `unknown key "foo" in [project]`},
+		{name: "bad enum", text: "[coverage]\ncoverpkg = \"all\"\n", wantErr: "coverage.coverpkg"},
+		{name: "bad duration", text: "[mutation]\ntimeout = \"soon\"\n", wantErr: "not a duration"},
+		{name: "custom editor without command", text: "[editor]\npreset = \"custom\"\n", wantErr: "needs editor.command"},
+		{name: "custom editor", text: "[editor]\npreset = \"custom\"\ncommand = \"vi +{line} {file}\"\n", check: func(c Config) bool {
+			return c.Editor.Command != ""
+		}},
+		{name: "syntax error", text: "[project\n", wantErr: "test.toml"},
+	}
+	for _, c := range cases {
+		cfg, warns, err := Parse("test.toml", c.text)
+		switch {
+		case c.wantErr != "":
+			if err == nil || !strings.Contains(err.Error(), c.wantErr) {
+				t.Errorf("%s: err = %v, want %q", c.name, err, c.wantErr)
+			}
+		case err != nil:
+			t.Errorf("%s: unexpected error %v", c.name, err)
+		case c.wantWarn != "" && (len(warns) != 1 || !strings.Contains(warns[0], c.wantWarn)):
+			t.Errorf("%s: warnings %v, want %q", c.name, warns, c.wantWarn)
+		case c.check != nil && !c.check(cfg):
+			t.Errorf("%s: check failed on %+v", c.name, cfg)
+		}
+	}
+}
