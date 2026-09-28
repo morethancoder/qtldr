@@ -79,8 +79,8 @@ func TestAnalyzeShowWorst(t *testing.T) {
 		{[]string{"show", "Close"}, 2, "matches 2 nodes"},
 		{[]string{"show", "Nope"}, 2, "no node matches"},
 		{[]string{"show"}, 2, "usage: qtldr show <id>"},
-		{[]string{"worst", "-n", "1"}, 0, "1. a.Big"},
-		{[]string{"worst", "--metric", "crap"}, 2, "not measured yet"},
+		{[]string{"worst", "--metric", "cognitive", "-n", "1"}, 0, "1. a.Big"},
+		{[]string{"worst"}, 0, "Run: qtldr analyze --coverage"},
 		{[]string{"worst", "--metric", "loc"}, 2, "unknown metric"},
 	}
 	for _, c := range cases {
@@ -172,5 +172,78 @@ func TestMissingLines(t *testing.T) {
 	got := missingLines("a\n  b  \n", []string{"a", "b", "c"})
 	if len(got) != 1 || got[0] != "c" {
 		t.Fatalf("got %v", got)
+	}
+}
+
+// A module with one passing and one failing test package, for coverage runs.
+func coverageModule(t *testing.T) string {
+	t.Helper()
+	dir := tempModule(t)
+	files := map[string]string{
+		"a/a_test.go": "package a\n\nimport \"testing\"\n\nfunc TestBig(t *testing.T) {\n\tif Big(5) != 5 {\n\t\tt.Fatal(\"Big\")\n\t}\n}\n",
+		"b/b_test.go": "package b\n\nimport \"testing\"\n\nfunc TestClose(t *testing.T) { t.Fatal(\"always fails\") }\n",
+	}
+	for name, body := range files {
+		if err := os.WriteFile(filepath.Join(dir, filepath.FromSlash(name)), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func TestAnalyzeCoverage(t *testing.T) {
+	if testing.Short() {
+		t.Skip("runs go test")
+	}
+	dir := coverageModule(t)
+	r := runCLI(t, allTools, "-C", dir, "analyze", "--coverage", "-v")
+	if r.code != 0 || !strings.Contains(r.stderr, "tests failed in 1 packages") || !strings.Contains(r.stderr, "Running coverage… 2 packages") {
+		t.Fatalf("%+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "show", "a.Big"); !strings.Contains(r.stdout, "Coverage         66.7% (2 of 3 statements)") {
+		t.Errorf("a.Big:\n%s", r.stdout)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "show", "example.com/m/b"); !strings.Contains(r.stdout, "Coverage error   tests failed; output in .qtldr/logs/coverage-") {
+		t.Errorf("package b:\n%s", r.stdout)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "worst", "--metric", "coverage", "--json"); !strings.Contains(r.stdout, `"not_measured": 2`) {
+		t.Errorf("worst coverage: %s", r.stdout)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "check", "--all", "a.Big"); r.code != 2 {
+		t.Errorf("--all with IDs: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "analyze", "--coverage", "--changed"); r.code != 2 || !strings.Contains(r.stderr, "not a git repository") {
+		t.Errorf("--changed outside git: %+v", r)
+	}
+}
+
+func TestExplainListAndJSON(t *testing.T) {
+	if r := runCLI(t, allTools, "-C", t.TempDir(), "explain"); r.code != 0 || !strings.Contains(r.stdout, "Terms: cc, churn,") {
+		t.Errorf("%+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", t.TempDir(), "--json", "explain", "not covered"); r.code != 0 || !strings.Contains(r.stdout, `"key": "not_covered"`) {
+		t.Errorf("%+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", t.TempDir(), "--json", "explain"); r.code != 0 || !strings.Contains(r.stdout, `"crap_avg"`) {
+		t.Errorf("%+v", r)
+	}
+}
+
+func TestCheckExplicitTargets(t *testing.T) {
+	dir := tempModule(t)
+	if r := runCLI(t, allTools, "-C", dir, "check", "--fast", "a/a.go"); r.code != 0 || !strings.Contains(r.stdout, "2 functions") {
+		t.Errorf("file target: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "check", "--fast", "example.com/m/a"); r.code != 0 || !strings.Contains(r.stdout, "| a.Close |") {
+		t.Errorf("package target: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "check", "--fast", "Nope"); r.code != 2 {
+		t.Errorf("unknown target: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "check", "--fast", "/elsewhere/x.go"); r.code != 2 || !strings.Contains(r.stderr, "outside the module") {
+		t.Errorf("outside file: %+v", r)
+	}
+	if r := runCLI(t, allTools, "-C", dir, "hook", "uninstall"); r.code != 2 {
+		t.Errorf("hook usage: %+v", r)
 	}
 }

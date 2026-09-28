@@ -74,11 +74,76 @@ type Edge struct {
 }
 
 // Metrics are the measured values of one node. A nil field means "not
-// measured", never zero.
+// measured", never zero. Functions use the first group; packages and the
+// module use the roll-up group.
 type Metrics struct {
-	CC        *int `json:"cc,omitempty"`
-	Cognitive *int `json:"cognitive,omitempty"`
-	LOC       *int `json:"loc,omitempty"`
+	CC         *int      `json:"cc,omitempty"`
+	Cognitive  *int      `json:"cognitive,omitempty"`
+	LOC        *int      `json:"loc,omitempty"`
+	Churn      *int      `json:"churn,omitempty"`
+	ChurnScope string    `json:"churn_scope,omitempty"`
+	Coverage   *Coverage `json:"coverage,omitempty"`
+	CRAP       *float64  `json:"crap,omitempty"`
+	Mutation   *Mutation `json:"mutation,omitempty"`
+	Grades     *Grades   `json:"grades,omitempty"`
+
+	// Roll-up (packages, module).
+	CrapMax       *float64 `json:"crap_max,omitempty"`
+	CrapAvg       *float64 `json:"crap_avg,omitempty"`
+	Worst         ID       `json:"worst,omitempty"`
+	CoverageError string   `json:"coverage_error,omitempty"`
+	MutationError string   `json:"mutation_error,omitempty"`
+}
+
+// Coverage is statement coverage from go test. Percent is nil when the code
+// has no statements.
+type Coverage struct {
+	Stmts   int         `json:"stmts"`
+	Covered int         `json:"covered"`
+	Percent *float64    `json:"percent"`
+	Stale   bool        `json:"stale"`
+	Lines   *LineStates `json:"lines,omitempty"`
+}
+
+// LineStates lists source lines by coverage state (absolute line numbers).
+type LineStates struct {
+	Covered   []int `json:"covered"`
+	Uncovered []int `json:"uncovered"`
+	Partial   []int `json:"partial"`
+}
+
+// Mutation is the result of mutation testing. Score is nil when killed +
+// survived is 0.
+type Mutation struct {
+	Killed     int      `json:"killed"`
+	Survived   int      `json:"survived"`
+	NotCovered int      `json:"not_covered"`
+	TimedOut   int      `json:"timed_out"`
+	Score      *float64 `json:"score"`
+	Stale      bool     `json:"stale"`
+	Mutants    []Mutant `json:"mutants,omitempty"`
+}
+
+// Sites is the number of mutation sites found (every status except the
+// ignored ones).
+func (m Mutation) Sites() int { return m.Killed + m.Survived + m.NotCovered + m.TimedOut }
+
+// Mutant is one code change made by the mutation engine.
+type Mutant struct {
+	Line        int    `json:"line"`
+	Col         int    `json:"col"`
+	Type        string `json:"type"`
+	Status      string `json:"status"`
+	Description string `json:"description"`
+}
+
+// Grades are 1 (worst) to 10 (best). Mutation is nil when the code has no
+// mutation sites, so it is left out of Combined.
+type Grades struct {
+	CRAP     int  `json:"crap"`
+	Mutation *int `json:"mutation"`
+	Coverage int  `json:"coverage"`
+	Combined int  `json:"combined"`
 }
 
 // Graph is what a language provider's scan returns.

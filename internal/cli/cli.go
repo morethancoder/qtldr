@@ -17,9 +17,6 @@ import (
 	"github.com/morethancoder/qtldr/internal/config"
 )
 
-// Version is the qtldr version written into snapshots.
-const Version = "0.1.0"
-
 // Exit codes.
 const (
 	ExitOK     = 0
@@ -50,6 +47,7 @@ func (g *globals) register(fs *flag.FlagSet) {
 // env is what every command receives.
 type env struct {
 	ctx    context.Context
+	stdin  io.Reader
 	stdout io.Writer
 	stderr io.Writer
 	g      globals
@@ -68,16 +66,19 @@ func commands() []command {
 	return []command{
 		{name: "init", summary: "write .qtldr.toml, add .gitignore rules, run doctor", run: runInit},
 		{name: "doctor", summary: "check go, git, gremlins and the editor command", run: runDoctor},
-		{name: "analyze", args: "[pkgs...]", summary: "scan structure and complexity; write the snapshot", run: runAnalyze},
+		{name: "analyze", args: "[pkgs...] [--coverage] [--changed]", summary: "scan structure and complexity (and run tests with --coverage); write the snapshot", run: runAnalyze, flags: analyzeFlags},
+		{name: "check", args: "[--changed | --all] [--fast] [--files-from-stdin] [ids or files...]", summary: "pass/fail report against the thresholds; exit 1 on a breach", run: runCheck, flags: checkFlags},
 		{name: "show", args: "<id>", summary: "everything about one package, function or type", run: runShow},
-		{name: "worst", args: "[--metric cognitive|cc] [-n 10]", summary: "rank functions by a metric", run: runWorst, flags: worstFlags},
+		{name: "worst", args: "[--metric crap|coverage|mutation|cognitive|cc] [-n 10]", summary: "rank functions by a metric", run: runWorst, flags: worstFlags},
+		{name: "explain", args: "[term]", summary: "what a metric means (same text as the UI tooltips)", run: runExplain},
+		{name: "hook", args: "install [--claude] [--git]", summary: "run qtldr check from Claude Code or git pre-push", run: runHook, flags: hookFlags},
 	}
 }
 
 // Run executes qtldr with args (without the program name) and returns the
 // exit code.
 func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
-	return run(&env{ctx: ctx, stdout: stdout, stderr: stderr, sys: osSystem{}}, args)
+	return run(&env{ctx: ctx, stdin: os.Stdin, stdout: stdout, stderr: stderr, sys: osSystem{}}, args)
 }
 
 func run(e *env, args []string) int {
@@ -181,6 +182,15 @@ func (e *env) moduleRoot() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return findModuleRoot(start)
+}
+
+// findModuleRoot walks up from dir to the nearest go.mod, resolving
+// symlinks so paths compare equal (/tmp vs /private/tmp on macOS).
+func findModuleRoot(start string) (string, error) {
+	if real, err := filepath.EvalSymlinks(start); err == nil {
+		start = real
+	}
 	for dir := start; ; dir = filepath.Dir(dir) {
 		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
 			return dir, nil
@@ -190,6 +200,19 @@ func (e *env) moduleRoot() (string, error) {
 		}
 	}
 }
+
+// setup finds the module root and loads its configuration.
+func (e *env) setup() (string, config.Config, error) {
+	root, err := e.moduleRoot()
+	if err != nil {
+		return "", config.Config{}, err
+	}
+	cfg, err := e.loadConfig(root)
+	return root, cfg, err
+}
+
+// progressLine prints pipeline progress with -v.
+func (e *env) progressLine(msg string) { e.debug("%s", msg) }
 
 // loadConfig reads --config or <root>/.qtldr.toml and prints its warnings.
 func (e *env) loadConfig(root string) (config.Config, error) {

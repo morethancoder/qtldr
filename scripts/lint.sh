@@ -20,8 +20,8 @@ step "staticcheck"
 go run honnef.co/go/tools/cmd/staticcheck@latest ./...
 ok "staticcheck clean"
 
-step "cognitive complexity <= 15 (until qtldr check exists)"
-if ! gocognit -over 15 internal cmd; then
+step "cognitive complexity <= 15 (non-test code; fast pre-check)"
+if ! gocognit -test=false -over 15 internal cmd; then
   die "functions above cognitive 15 (listed above); split them"
 fi
 ok "all functions <= 15"

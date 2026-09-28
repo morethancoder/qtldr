@@ -10,3 +10,8 @@ qtldr-starter.zip
 testdata/ledger/target/
 /bin/
 .env
+# qtldr
+.qtldr/snapshot.json
+.qtldr/focus.json
+.qtldr/cache/
+.qtldr/logs/

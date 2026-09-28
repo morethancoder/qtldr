@@ -12,7 +12,7 @@ You are building **qtldr**, specified in `PLAN.md` (what to build, in what order
 2. **Verify, don't assume.** Every "verify at build time" item (PLAN.md §16) gets checked against the real tool or current docs, and the answer goes in `docs/decisions.md` (question · answer · how you checked · date). This includes Go/Node versions, Gremlins flags and JSON, go-sdk API, Shiki theme IDs, React Flow + ELK APIs, editor CLI flags, Claude Code hook format.
 3. **Never invent tool output in tests.** Gremlins JSON, coverage profiles from `go test`, crap4go output and Claude Code hook payloads used as fixtures must be captured from real runs and saved under `testdata/`. Hand-written inputs are fine only for pure parsers (e.g., a coverage profile with specific blocks), and must be labeled as such.
 4. **Keep the core pure.** `internal/model`, `internal/metrics`, the coverage-profile parser and mutation attribution take values and return values: no file, network, clock, env or globals. Tests for them are table-driven.
-5. **Small functions.** qtldr is checked by qtldr: CRAP ≤ 8 and cognitive ≤ 15 per function in `internal/`. Run `make ci` before each commit; once M1 lands, also `go run ./cmd/qtldr check --changed`.
+5. **Small functions.** qtldr is checked by qtldr: CRAP ≤ 8 and cognitive ≤ 15 per function in `internal/`. Run `make check` (or `make ci`) before each commit.
 6. **Tests first for metrics.** Grades, roll-ups, CRAP, coverage mapping and check scoping have exact rules in PLAN.md §7–8; write the table tests from those rules before the code.
 7. **Errors are specific.** Messages name the file, package or function, what went wrong, and what to run next. No silent fallbacks: missing data is shown as "not measured", never as zero.
 8. **The web build is committed.** After changing `web/src`, run the web build so `web/dist` matches; CI fails otherwise.
@@ -25,10 +25,11 @@ make setup      # download modules, install crap4go + gocognit
 make doctor     # check tools
 make test       # all Go tests
 make lint       # gofmt, vet, staticcheck, cognitive <= 15
-make ci         # lint + test (run before each commit)
+make check      # qtldr check --changed on qtldr itself (run before each commit)
+make ci         # lint + test + qtldr check --all on itself
 make golden     # regenerate testdata/golden (review the diff!)
 make capture    # re-capture crap4go/gocognit output after changing testdata/ledger
-make demo       # analyze the fixture, show applyTiered, worst functions
+make demo       # analyze the fixture with coverage, show applyTiered, worst, check
 make build      # bin/qtldr
 make clean
 ```
@@ -42,7 +43,7 @@ Direct CLI use: `go run ./cmd/qtldr -C testdata/ledger show <id>` (the fixture h
 ## Progress checklist
 - [x] §0 module path chosen (`github.com/morethancoder/qtldr`)
 - [x] M0 skeleton & structure
-- [ ] M1 coverage, CRAP, check, hooks
+- [x] M1 coverage, CRAP, check, hooks
 - [ ] M2 web UI
 - [ ] M3 mutation
 - [ ] M4 agents (MCP)

@@ -39,3 +39,24 @@ func TestReadSnapshotRejectsOtherSchema(t *testing.T) {
 		t.Fatal("want a schema error")
 	}
 }
+
+func TestWriteFileErrors(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "f")
+	if err := os.WriteFile(file, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteFile(filepath.Join(file, "sub", "x.json"), []byte("{}")); err == nil {
+		t.Error("parent is a file: want error")
+	}
+	ro := filepath.Join(dir, "ro")
+	if err := os.Mkdir(ro, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteFile(filepath.Join(ro, "x.json"), []byte("{}")); err == nil {
+		t.Error("read-only dir: want error")
+	}
+	if err := WriteJSON(filepath.Join(dir, "bad.json"), func() {}); err == nil {
+		t.Error("unencodable value: want error")
+	}
+}

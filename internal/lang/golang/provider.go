@@ -13,6 +13,8 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	"github.com/morethancoder/qtldr/internal/config"
+	"github.com/morethancoder/qtldr/internal/coverage"
+	"github.com/morethancoder/qtldr/internal/lang"
 	"github.com/morethancoder/qtldr/internal/model"
 )
 
@@ -52,6 +54,7 @@ func (p *Provider) Scan(ctx context.Context, root string, cfg config.Project) (m
 	for _, pkg := range s.pkgs {
 		s.addPackage(pkg)
 	}
+	s.addImplements()
 	if err := s.addImports(ctx); err != nil {
 		return model.Graph{}, err
 	}
@@ -96,3 +99,22 @@ func mainModule(pkgs []*packages.Package) ([]*packages.Package, *packages.Module
 	}
 	return own, mod, nil
 }
+
+// CoverageRun runs the configured go test command with coverage for pkgs.
+func (*Provider) CoverageRun(ctx context.Context, root string, pkgs []string, cfg config.Coverage, profilePath string) (coverage.RunResult, error) {
+	return coverage.Run(ctx, root, cfg, pkgs, profilePath)
+}
+
+// MapCoverage attributes a Go coverage profile (import-path file names) to
+// the functions of g.
+func (*Provider) MapCoverage(g model.Graph, p coverage.Profile) map[model.ID]model.Coverage {
+	module := ""
+	for _, n := range g.Nodes {
+		if n.Kind == model.KindModule {
+			module = string(n.ID)
+		}
+	}
+	return coverage.Map(p.Relativize(module), coverage.FuncsOf(g))
+}
+
+var _ lang.Provider = (*Provider)(nil)

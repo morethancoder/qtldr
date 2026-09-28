@@ -32,7 +32,7 @@ func TestRank(t *testing.T) {
 		{CC, 1, []model.ID{"p.c"}},
 	}
 	for _, c := range cases {
-		r, err := Rank(g, c.metric, c.n)
+		r, err := Rank(g, c.metric, c.n, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -48,7 +48,26 @@ func TestRank(t *testing.T) {
 			}
 		}
 	}
-	if _, err := Rank(g, "crap", 1); err == nil {
+	if _, err := Rank(g, "loc", 1, nil); err == nil {
 		t.Error("unknown metric should fail")
+	}
+}
+
+func TestRankLowIsWorse(t *testing.T) {
+	g := model.Graph{
+		Nodes: []model.Node{{ID: "a", Kind: model.KindFunc}, {ID: "b", Kind: model.KindFunc}, {ID: "c", Kind: model.KindFunc}},
+		Metrics: map[model.ID]model.Metrics{
+			"a": {Coverage: &model.Coverage{Percent: model.Ptr(90.0)}},
+			"b": {Coverage: &model.Coverage{Percent: model.Ptr(10.0), Stale: true}},
+			"c": {Coverage: &model.Coverage{}}, // no statements
+		},
+	}
+	r, err := Rank(g, Coverage, 0, nil)
+	if err != nil || len(r.Items) != 2 || r.Items[0].ID != "b" || !r.Items[0].Stale || r.NotMeasured != 1 {
+		t.Fatalf("%+v %v", r, err)
+	}
+	r, _ = Rank(g, Coverage, 0, []model.ID{"a"})
+	if len(r.Items) != 1 || r.Items[0].ID != "a" {
+		t.Fatalf("scoped: %+v", r)
 	}
 }

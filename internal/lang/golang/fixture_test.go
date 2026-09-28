@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/morethancoder/qtldr/internal/config"
+	"github.com/morethancoder/qtldr/internal/metrics"
 	"github.com/morethancoder/qtldr/internal/model"
 )
 
@@ -53,7 +54,9 @@ func scanFixture(t *testing.T) model.Graph {
 //
 //	go test ./internal/lang/golang -run Golden -update
 func TestGoldenSnapshot(t *testing.T) {
-	got, err := json.MarshalIndent(scanFixture(t), "", "  ")
+	// Structure, complexity and purity: the scan plus metrics.Compute with no
+	// coverage, mutation or churn inputs (those depend on the machine).
+	got, err := json.MarshalIndent(metrics.Compute(scanFixture(t), metrics.Inputs{}), "", "  ")
 	if err != nil {
 		t.Fatal(err)
 	}

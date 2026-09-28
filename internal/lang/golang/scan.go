@@ -26,6 +26,9 @@ type scanner struct {
 	ids      map[model.ID]bool
 	edges    map[model.Edge]bool
 	metrics  map[model.ID]model.Metrics
+	vars     *varFacts
+	concrete []*types.TypeName // non-interface named types, for implements edges
+	ifaces   []*types.TypeName
 }
 
 func newScanner(root string, cfg config.Project, all []*packages.Package) (*scanner, error) {
@@ -41,6 +44,7 @@ func newScanner(root string, cfg config.Project, all []*packages.Package) (*scan
 	for _, p := range pkgs {
 		s.inModule[p.PkgPath] = true
 	}
+	s.vars = newVarFacts(pkgs, s.inModule)
 	s.addNode(model.Node{ID: model.ID(mod.Path), Kind: model.KindModule, Name: shortModuleName(mod.Path)})
 	return s, nil
 }
@@ -113,7 +117,7 @@ func (s *scanner) addFunc(pkg *packages.Package, file string, fn *ast.FuncDecl) 
 	s.addNode(model.Node{
 		ID: id, Kind: model.KindFunc, Name: qualifiedName(recv, fn.Name.Name), Parent: model.ID(pkg.PkgPath),
 		File: file, Line: start, EndLine: end, Exported: model.Ptr(fn.Name.IsExported()),
-		Recv: recv, PtrRecv: ptr, Signature: sig, BodyHash: hash,
+		Recv: recv, PtrRecv: ptr, Signature: sig, BodyHash: hash, Effects: s.localEffects(pkg.TypesInfo, fn),
 	})
 	s.metrics[id] = model.Metrics{
 		CC: model.Ptr(Cyclomatic(fn)), Cognitive: model.Ptr(Cognitive(fn)), LOC: model.Ptr(end - start + 1),
@@ -139,11 +143,46 @@ func (s *scanner) addType(pkg *packages.Package, file string, ts *ast.TypeSpec) 
 		ID: model.ID(pkg.PkgPath + "." + ts.Name.Name), Kind: model.KindType, TypeKind: typeKind(ts),
 		Name: ts.Name.Name, Parent: model.ID(pkg.PkgPath), File: file, Line: pkg.Fset.Position(ts.Pos()).Line,
 	}
-	if obj := pkg.TypesInfo.Defs[ts.Name]; obj != nil && n.TypeKind == "struct" {
+	obj, _ := pkg.TypesInfo.Defs[ts.Name].(*types.TypeName)
+	if obj != nil && n.TypeKind == "struct" {
 		n.Fields = structFields(obj.Type(), pkg.Types)
 	}
 	s.addNode(n)
+	s.rememberType(obj)
 }
+
+func (s *scanner) rememberType(obj *types.TypeName) {
+	if obj == nil || obj.IsAlias() {
+		return
+	}
+	named, ok := obj.Type().(*types.Named)
+	if !ok || named.TypeParams().Len() > 0 {
+		return // generic types: types.Implements is unspecified for them
+	}
+	if types.IsInterface(named) {
+		s.ifaces = append(s.ifaces, obj)
+	} else {
+		s.concrete = append(s.concrete, obj)
+	}
+}
+
+// addImplements adds T → I edges for every module type T (or *T) that
+// implements a non-empty module interface I.
+func (s *scanner) addImplements() {
+	for _, i := range s.ifaces {
+		it := i.Type().Underlying().(*types.Interface)
+		if it.NumMethods() == 0 {
+			continue
+		}
+		for _, t := range s.concrete {
+			if types.Implements(t.Type(), it) || types.Implements(types.NewPointer(t.Type()), it) {
+				s.addEdge(typeID(t), typeID(i), model.EdgeImplements)
+			}
+		}
+	}
+}
+
+func typeID(obj *types.TypeName) model.ID { return model.ID(obj.Pkg().Path() + "." + obj.Name()) }
 
 func typeKind(ts *ast.TypeSpec) string {
 	switch ts.Type.(type) {

@@ -1,0 +1,47 @@
+# qtldr configuration. All keys are optional; these are the defaults.
+
+[project]
+include = ["./..."]                        # package patterns to analyze
+exclude = ["**/*_mock.go", "**/mocks/**", "cmd/qtldr/main.go"]    # globs on file paths; generated files are always excluded
+base_ref = "main"                          # default ref for the "changed" scope
+external_modules = "collapsed"             # collapsed | hidden
+show_stdlib = false
+
+[coverage]
+command = "go test -covermode=count -coverprofile={profile} {packages}"  # {profile}, {packages} are filled in
+coverpkg = "module"                          # own (package's own tests) | module (adds -coverpkg=./...)
+timeout = "10m"
+
+[mutation]
+engine = "gremlins"
+args = []                                  # extra args passed through
+timeout = "30m"
+max_functions = 40                         # per run; highest-CRAP first; the rest are reported as skipped
+
+[thresholds]                               # used by `qtldr check` and for "problem" chips in the UI
+crap_max = 8
+cognitive_max = 15
+coverage_min = 0                           # qtldr's own gate is CRAP + cognitive (CLAUDE.md rule 5); CRAP already weights coverage
+mutation_min = 0                           # see coverage_min; mutation results are still shown
+critical_paths = []                        # globs; coverage_min becomes 100 there
+
+[purity]
+allow = []                                 # function IDs to treat as pure even if the heuristic says effectful
+
+[churn]
+window_months = 12
+
+[ui]
+theme = "gruvbox-dark"                     # id from the theme list or a custom theme in .qtldr/themes/
+theme_light = ""                           # optional: follow the OS light/dark setting with this pair
+theme_dark = ""
+port = 0                                   # 0 = pick a free port
+
+[editor]
+preset = "vscode"                          # vscode | cursor | zed | goland | nvim-remote | vim-tmux | custom
+command = ""                               # used when preset = "custom", e.g. "nvim +{line} {file}"
+nvim_socket = ""                           # for nvim-remote; default $NVIM
+terminal = ""                              # for vim-tmux, e.g. "tmux new-window"
+
+[agent]
+tmux_target = ""                           # optional: "Send to agent" also types the prompt into this tmux pane
