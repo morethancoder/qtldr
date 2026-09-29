@@ -353,6 +353,9 @@ func TestRelevant(t *testing.T) {
 		{fsnotify.Event{Name: "a/tier.go", Op: fsnotify.Write}, true},
 		{fsnotify.Event{Name: "a/tier_test.go", Op: fsnotify.Write}, false},
 		{fsnotify.Event{Name: "a/tier.go", Op: fsnotify.Chmod}, false},
+		// kqueue reports a truncate+write as one event with both bits.
+		{fsnotify.Event{Name: "a/tier.go", Op: fsnotify.Write | fsnotify.Chmod}, true},
+		{fsnotify.Event{Name: "a/tier.go", Op: fsnotify.Remove}, true},
 		{fsnotify.Event{Name: "a/notes.md", Op: fsnotify.Write}, false},
 		{fsnotify.Event{Name: sub, Op: fsnotify.Create}, false},
 	}

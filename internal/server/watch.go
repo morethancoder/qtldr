@@ -79,14 +79,15 @@ func (s *Server) watchDirs() []string {
 }
 
 // relevant reports whether ev should trigger a re-scan; new directories are
-// added to the watch instead.
+// added to the watch instead. Only a pure Chmod is ignored: kqueue (macOS)
+// reports a truncate+write as one Write|Chmod event.
 func relevant(ev fsnotify.Event, add func(string) error) bool {
 	if ev.Has(fsnotify.Create) && isNewDir(ev.Name) {
 		_ = add(ev.Name)
 		return false
 	}
 	name := filepath.Base(ev.Name)
-	return strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, "_test.go") && !ev.Has(fsnotify.Chmod)
+	return strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, "_test.go") && ev.Op != fsnotify.Chmod
 }
 
 func isNewDir(path string) bool {
