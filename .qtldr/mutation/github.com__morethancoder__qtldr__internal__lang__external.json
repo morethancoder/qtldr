@@ -3,13 +3,13 @@
   "package": "github.com/morethancoder/qtldr/internal/lang/external",
   "engine": "gremlins",
   "engine_version": "v0.6.0",
-  "ran_at": "2026-09-29T00:25:38Z",
+  "ran_at": "2026-09-29T12:50:51Z",
   "functions": {
     "github.com/morethancoder/qtldr/internal/lang/external.Files": {
       "body_hash": "sha256:74ec2fc2d25f130d360a09f6cb50587b173f22b1084b5a65bd0085687311b01d",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -30,7 +30,7 @@
       "body_hash": "sha256:b3186dbf448be44b0ea4e870432625b49b5b19555e0cc981f2c87a5da1d6b786",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -43,7 +43,7 @@
       "body_hash": "sha256:7a988a3a503ae3a67c27dd5d134ba6d38da2587da034ed41ba1646ddf8f4ec26",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 2,
         "survived": 0,
@@ -71,7 +71,7 @@
       "body_hash": "sha256:ec971c3b23cd382dfc1d22b55b5adfbe912303dd24ccb3915a1b4b5f1280144a",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 2,
         "survived": 0,
@@ -99,7 +99,7 @@
       "body_hash": "sha256:973170e87363ac9380cc0f1a44be7911beb0a0438693201cb7a41e6be23cdb89",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 3,
         "survived": 0,
@@ -134,7 +134,7 @@
       "body_hash": "sha256:48cfdd3e406bde80443de73f8e21976d07ea02d14d0c0cfb7b9b2fec1a022c25",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 2,
         "survived": 0,
@@ -162,7 +162,7 @@
       "body_hash": "sha256:201d77ae409e5e4ab2aa9d7ea9eda311d35b1248a9e8196552f3b0a031a70ebe",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 4,
         "survived": 0,
@@ -204,7 +204,7 @@
       "body_hash": "sha256:1ec129d80a9377fa5485be77288f05218114d190a8c70d5b8cf4c5bcbe5ec812",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 7,
         "survived": 0,
@@ -267,10 +267,10 @@
       "body_hash": "sha256:73f68d58f3c4351b1f09f4845fdbca371f0702c493464b6909f742bc0beb21e0",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
-        "killed": 3,
-        "survived": 2,
+        "killed": 5,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -285,16 +285,23 @@
         {
           "line_offset": 0,
           "col": 58,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "KILLED",
+          "description": "\u003e= → \u003e"
+        },
+        {
+          "line_offset": 0,
+          "col": 58,
           "type": "CONDITIONALS_NEGATION",
           "status": "KILLED",
           "description": "\u003e= → \u003c"
         },
         {
           "line_offset": 0,
-          "col": 58,
+          "col": 69,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003e= → \u003e"
+          "status": "KILLED",
+          "description": "\u003c= → \u003c"
         },
         {
           "line_offset": 0,
@@ -302,13 +309,6 @@
           "type": "CONDITIONALS_NEGATION",
           "status": "KILLED",
           "description": "\u003c= → \u003e"
-        },
-        {
-          "line_offset": 0,
-          "col": 69,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003c= → \u003c"
         }
       ]
     },
@@ -316,7 +316,7 @@
       "body_hash": "sha256:86b94c3505e8bba17c4e30ddf6497434fb6c6afb9a0cbfd5b45592b65027fa1c",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -337,7 +337,7 @@
       "body_hash": "sha256:23572ec70b9396a139a2b0f311f0b8de3a8689eeb0d2f1383349a6a0ed40aa30",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -358,7 +358,7 @@
       "body_hash": "sha256:81087979073024f51f40bd9b412ad08fb5b9feb7de2c1e5718baff54b6cf92cb",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -371,7 +371,7 @@
       "body_hash": "sha256:fa311e679d8228dbaa7d648b7e599b87d8cfe5a1914f546005955133ddb99bdd",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -384,10 +384,10 @@
       "body_hash": "sha256:92eaa0dc84495c475cc0dc08df3915535505fb70da0c9f11c2536c6ba8089691",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
-        "killed": 2,
-        "survived": 1,
+        "killed": 3,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -402,16 +402,16 @@
         {
           "line_offset": 1,
           "col": 32,
-          "type": "CONDITIONALS_NEGATION",
+          "type": "CONDITIONALS_BOUNDARY",
           "status": "KILLED",
-          "description": "\u003c= → \u003e"
+          "description": "\u003c= → \u003c"
         },
         {
           "line_offset": 1,
           "col": 32,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003c= → \u003c"
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003c= → \u003e"
         }
       ]
     },
@@ -419,10 +419,10 @@
       "body_hash": "sha256:7c8f0df2e194193a4d9cd3eb15c586dfff6dd70b7dbbc0d0d1dda98e0296e4f5",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
-        "killed": 3,
-        "survived": 2,
+        "killed": 5,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -430,23 +430,30 @@
         {
           "line_offset": 1,
           "col": 16,
-          "type": "CONDITIONALS_NEGATION",
+          "type": "CONDITIONALS_BOUNDARY",
           "status": "KILLED",
-          "description": "\u003e= → \u003c"
+          "description": "\u003e= → \u003e"
         },
         {
           "line_offset": 1,
           "col": 16,
-          "type": "CONDITIONALS_BOUNDARY",
+          "type": "CONDITIONALS_NEGATION",
           "status": "KILLED",
-          "description": "\u003e= → \u003e"
+          "description": "\u003e= → \u003c"
         },
         {
           "line_offset": 1,
           "col": 32,
           "type": "CONDITIONALS_NEGATION",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "!= → =="
+        },
+        {
+          "line_offset": 1,
+          "col": 63,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "KILLED",
+          "description": "\u003e= → \u003e"
         },
         {
           "line_offset": 1,
@@ -454,13 +461,6 @@
           "type": "CONDITIONALS_NEGATION",
           "status": "KILLED",
           "description": "\u003e= → \u003c"
-        },
-        {
-          "line_offset": 1,
-          "col": 63,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003e= → \u003e"
         }
       ]
     },
@@ -468,7 +468,7 @@
       "body_hash": "sha256:1b7c3df389f90935a9535aa003f0d22bf7461caba4ac93fcb69176904a3dc68f",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -481,11 +481,11 @@
       "body_hash": "sha256:0818420a05b8ad0bc4af8281cebca1f84197b14d87cf10835e4891168984728c",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
-        "killed": 5,
-        "survived": 1,
-        "not_covered": 1,
+        "killed": 7,
+        "survived": 0,
+        "not_covered": 0,
         "timed_out": 0
       },
       "mutants": [
@@ -514,7 +514,7 @@
           "line_offset": 12,
           "col": 13,
           "type": "ARITHMETIC_BASE",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "+ → -"
         },
         {
@@ -535,7 +535,7 @@
           "line_offset": 17,
           "col": 28,
           "type": "CONDITIONALS_NEGATION",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "== → !="
         }
       ]
@@ -544,7 +544,7 @@
       "body_hash": "sha256:2e5885bd677fc29326a0ea4f56487d206db7aca1e139f386e28fac47762c2e36",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 4,
         "survived": 0,
@@ -586,10 +586,10 @@
       "body_hash": "sha256:348f1aed8161711f773b521a9498a8c2f24a2e052b00f66c0f54915c82678811",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
-        "killed": 9,
-        "survived": 1,
+        "killed": 10,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -618,16 +618,16 @@
         {
           "line_offset": 11,
           "col": 26,
-          "type": "CONDITIONALS_NEGATION",
+          "type": "CONDITIONALS_BOUNDARY",
           "status": "KILLED",
-          "description": "\u003c → \u003e="
+          "description": "\u003c → \u003c="
         },
         {
           "line_offset": 11,
           "col": 26,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003c → \u003c="
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003c → \u003e="
         },
         {
           "line_offset": 12,
@@ -670,7 +670,7 @@
       "body_hash": "sha256:7e0a3d1bf73f8ce11852ce348eb74d38f6670e4d2f08944d03d1423a670f14eb",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 6,
         "survived": 0,
@@ -747,7 +747,7 @@
       "body_hash": "sha256:b744be2190f8e75c683a020e3b716aaedc966f9b3a5f561d464a412bfe06ffc4",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -768,7 +768,7 @@
       "body_hash": "sha256:4703c8b1bc1360c5bdad2292f7c7aa928471e490fc895a10a5f86a266276e01d",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:25:38Z",
+      "ran_at": "2026-09-29T12:50:51Z",
       "counts": {
         "killed": 2,
         "survived": 0,

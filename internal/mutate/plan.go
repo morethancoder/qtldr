@@ -43,16 +43,20 @@ func (p *Plan) sortOut(g model.Graph, caches map[model.ID]Cache, scope []model.I
 		if !inScope(n, scope) {
 			continue
 		}
-		it := item(g, n)
-		switch {
-		case it.Funcs == 0:
-		case !force && caches[n.ID].Current(g, n.ID):
-			p.UpToDate = append(p.UpToDate, n.ID)
-		default:
-			due = append(due, it)
+		if it := item(g, n); it.Funcs > 0 {
+			due = p.place(due, it, !force && caches[n.ID].Current(g, n.ID))
 		}
 	}
 	return due
+}
+
+// place adds it to due, or to UpToDate when its results are current.
+func (p *Plan) place(due []Item, it Item, current bool) []Item {
+	if current {
+		p.UpToDate = append(p.UpToDate, it.Pkg)
+		return due
+	}
+	return append(due, it)
 }
 
 // inScope: a package, and in scope when a scope is given.
@@ -76,14 +80,22 @@ func (p *Plan) fill(due []Item, max int) {
 // item counts a package's functions and its highest CRAP (missing CRAP
 // ranks below any measured one).
 func item(g model.Graph, pkg model.Node) Item {
-	it := Item{Pkg: pkg.ID, Dir: pkg.Dir, risk: -1}
+	it := Item{Pkg: pkg.ID, Dir: pkg.Dir, risk: noCRAP}
 	for _, n := range g.Nodes {
 		if n.Kind == model.KindFunc && n.Parent == pkg.ID {
 			it.Funcs++
-			if c := g.Metrics[n.ID].CRAP; c != nil && *c > it.risk {
-				it.risk = *c
-			}
+			it.risk = max(it.risk, crapOr(g.Metrics[n.ID].CRAP))
 		}
 	}
 	return it
+}
+
+// noCRAP ranks a function without CRAP below any measured one (CRAP ≥ 1).
+const noCRAP = -1
+
+func crapOr(c *float64) float64 {
+	if c == nil {
+		return noCRAP
+	}
+	return *c
 }

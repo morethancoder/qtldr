@@ -2,6 +2,7 @@ package coverage
 
 import (
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/morethancoder/qtldr/internal/model"
@@ -80,7 +81,7 @@ func (c *Cache) recordErrors(ran []model.ID, failed map[model.ID]string) {
 func (c *Cache) forget(pkgs []model.ID) {
 	for id := range c.Functions {
 		for _, p := range pkgs {
-			if len(id) > len(p) && id[:len(p)] == p && id[len(p)] == '.' {
+			if strings.HasPrefix(string(id), string(p)+".") {
 				delete(c.Functions, id)
 				break
 			}

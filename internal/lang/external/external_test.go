@@ -54,6 +54,53 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+// Valid edges reach the graph; an unknown source is a problem of its own.
+func TestValidateEdges(t *testing.T) {
+	g, problems := Validate([]byte(valid))
+	if len(problems) != 0 || len(g.Edges) != 1 || g.Edges[0].Kind != model.EdgeCalls {
+		t.Errorf("edges %+v problems %v", g.Edges, problems)
+	}
+	_, problems = Validate([]byte(`{"nodes": [{"id": "a", "kind": "package", "name": "a"}],
+"edges": [{"from": "a", "to": "a", "kind": "imports"}, {"from": "zz", "to": "a", "kind": "imports"}]}`))
+	if len(problems) != 1 || problems[0].String() != `$.edges[1].from: unknown node "zz"` {
+		t.Errorf("problems %v", problems)
+	}
+}
+
+// The range checks include their bounds.
+func TestValidationBounds(t *testing.T) {
+	if _, problems := Validate([]byte(strings.Replace(valid, `"cc": 3`, `"cc": 1`, 1))); len(problems) != 0 {
+		t.Errorf("cc 1 is the minimum: %v", problems)
+	}
+	pct := func(v float64) *float64 { return &v }
+	for _, c := range []struct {
+		p    *float64
+		want bool
+	}{{nil, true}, {pct(0), true}, {pct(100), true}, {pct(-0.1), false}, {pct(100.1), false}} {
+		if got := percentOK(c.p); got != c.want {
+			t.Errorf("percentOK(%v) = %v", c.p, got)
+		}
+	}
+	if !validCoverage(&model.Coverage{Stmts: 3, Covered: 3}) || validCoverage(&model.Coverage{Stmts: 3, Covered: 4}) || !validCoverage(nil) {
+		t.Error("validCoverage: covered may equal stmts, not exceed it")
+	}
+	lines := []struct {
+		n    model.Node
+		want bool
+	}{
+		{model.Node{Kind: model.KindFunc, Line: 4, EndLine: 4}, true}, // one-line function
+		{model.Node{Kind: model.KindFunc, Line: 4, EndLine: 3}, false},
+		{model.Node{Kind: model.KindType, Line: 4}, true}, // types need no end line
+		{model.Node{Kind: model.KindFunc, Line: 0, EndLine: 3}, false},
+		{model.Node{Kind: model.KindType, Line: 1}, true},
+	}
+	for _, c := range lines {
+		if got := validLines(c.n); got != c.want {
+			t.Errorf("validLines(%+v) = %v", c.n, got)
+		}
+	}
+}
+
 func TestMerge(t *testing.T) {
 	g := model.Graph{Nodes: []model.Node{{ID: "m", Kind: model.KindModule}, {ID: "py:app", Kind: model.KindPackage}}, Metrics: map[model.ID]model.Metrics{}}
 	add, _ := Validate([]byte(valid))

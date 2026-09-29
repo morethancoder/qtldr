@@ -3,6 +3,7 @@ package mutate
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -231,8 +232,10 @@ func TestRunIncrementalAndPreflight(t *testing.T) {
 	eng := &fakeEngine{mutants: map[string][]FileMutant{"a": {
 		{File: "a/a.go", Line: 4, Col: 11, Type: "CONDITIONALS_BOUNDARY", Status: Lived},
 		{File: "a/a.go", Line: 4, Col: 11, Type: "CONDITIONALS_NEGATION", Status: Killed},
+		{File: "a/a.go", Line: 4, Col: 11, Type: "CONDITIONALS_BOUNDARY", Status: NotCovered},
 	}}}
-	opt := Options{Root: root, Graph: g, Config: config.Default().Mutation, Engine: eng}
+	var progress []string
+	opt := Options{Root: root, Graph: g, Config: config.Default().Mutation, Engine: eng, Progress: func(m string) { progress = append(progress, m) }}
 	rep, err := Run(context.Background(), opt)
 	if err != nil {
 		t.Fatal(err)
@@ -241,8 +244,14 @@ func TestRunIncrementalAndPreflight(t *testing.T) {
 	for _, p := range rep.Packages {
 		status[string(p.Pkg)] = p
 	}
-	if a := status["example.com/m/a"]; a.Status != "ran" || a.Killed != 1 || a.Lived != 1 {
+	if a := status["example.com/m/a"]; a.Status != "ran" || a.Killed != 1 || a.Lived != 1 || a.NotCov != 1 {
 		t.Errorf("a: %+v", a)
+	}
+	if secs := strconv.FormatFloat(status["example.com/m/a"].Seconds, 'f', -1, 64); strings.Contains(secs, ".") && len(secs)-strings.Index(secs, ".") > 2 {
+		t.Errorf("seconds are rounded to 0.1: %s", secs)
+	}
+	if len(progress) != 2 || progress[0] != "Running mutation… 1/2 packages (a)" || progress[1] != "Running mutation… 2/2 packages (b)" {
+		t.Errorf("progress %q", progress)
 	}
 	if b := status["example.com/m/b"]; b.Status != "failed" || !strings.Contains(b.Message, PreflightFailed) || !strings.Contains(b.Message, ".qtldr/logs/") {
 		t.Errorf("b must be blocked by the pre-flight: %+v", b)
@@ -256,11 +265,13 @@ func TestRunIncrementalAndPreflight(t *testing.T) {
 		t.Errorf("Pos: %+v", pos)
 	}
 
-	// Second run with no change: a is up to date; b (failed) is retried.
+	// Second run with no change and no timeout (0 = no limit): a is up to
+	// date; b (failed) is retried.
 	eng.runs = nil
-	rep, _ = Run(context.Background(), opt)
-	if strings.Join(eng.runs, ",") != "" || rep.Packages[len(rep.Packages)-1].Status != "up to date" {
-		t.Errorf("second run: engine %v report %+v", eng.runs, rep.Packages)
+	opt.Config.Timeout = config.Duration{}
+	rep, err = Run(context.Background(), opt)
+	if err != nil || strings.Join(eng.runs, ",") != "" || rep.Packages[len(rep.Packages)-1].Status != "up to date" {
+		t.Errorf("second run: %v engine %v report %+v", err, eng.runs, rep.Packages)
 	}
 }
 
@@ -305,5 +316,132 @@ func TestTallyStatuses(t *testing.T) {
 	mu := Tally([]model.Mutant{{Line: 2, Status: TimedOut}, {Line: 1, Col: 5, Status: Killed}, {Line: 1, Col: 2, Status: NotCovered}, {Line: 3, Status: NotViable}})
 	if mu.Killed != 1 || mu.TimedOut != 1 || mu.NotCovered != 1 || mu.Survived != 0 || *mu.Score != 100 || mu.Mutants[0].Col != 2 {
 		t.Fatalf("%+v", mu)
+	}
+}
+
+// fakeGremlinsBinary builds a Go program whose main module path is
+// Gremlins', so `go version -m` reports it as "(devel)".
+func fakeGremlinsBinary(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	files := map[string]string{"go.mod": "module github.com/go-gremlins/gremlins\n\ngo 1.26.0\n", "main.go": "package main\n\nfunc main() {}\n"}
+	for name, body := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cmd := exec.Command("go", "build", "-o", "gremlins", ".")
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	return filepath.Join(dir, "gremlins")
+}
+
+func TestGremlinsVersion(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds a binary")
+	}
+	if got := (Gremlins{Bin: fakeGremlinsBinary(t)}).Version(context.Background()); got != "(devel)" {
+		t.Errorf("Version = %q, want the module version from go version -m", got)
+	}
+	// A binary without Go build info (a script) has no version.
+	script := filepath.Join(t.TempDir(), "gremlins")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if got := (Gremlins{Bin: script}).Version(context.Background()); got != "unknown" {
+		t.Errorf("script: %q", got)
+	}
+}
+
+func TestModuleVersionFields(t *testing.T) {
+	cases := map[string]string{
+		"\tmod\tgithub.com/go-gremlins/gremlins\t(devel)\t\n":         "(devel)", // main module: no sum
+		"\tmod\tgithub.com/go-gremlins/gremlins\tv0.6.0\th1:x\n":      "v0.6.0",
+		"\tdep\tgithub.com/go-gremlins/gremlins\tv0.6.0\th1:x\n":      "unknown",
+		"\tmod\tgithub.com/go-gremlins/gremlins-fork\tv1.0.0\th1:x\n": "unknown",
+		"\tmod\tgithub.com/go-gremlins/gremlins\n":                    "unknown",
+	}
+	for out, want := range cases {
+		if got := ModuleVersion(out, "github.com/go-gremlins/gremlins"); got != want {
+			t.Errorf("ModuleVersion(%q) = %q, want %q", out, got, want)
+		}
+	}
+}
+
+func TestFill(t *testing.T) {
+	items := func(funcs ...int) []Item {
+		var out []Item
+		for i, n := range funcs {
+			out = append(out, Item{Pkg: model.ID(strconv.Itoa(i)), Funcs: n})
+		}
+		return out
+	}
+	cases := []struct {
+		name         string
+		funcs        []int
+		max          int
+		run, skipped int
+	}{
+		{"the first package always runs", []int{50, 1}, 40, 1, 1},
+		{"up to max exactly", []int{20, 20, 1}, 40, 2, 1},
+		{"max 0 means no limit", []int{50, 50}, 0, 2, 0},
+		{"later packages fill the gap", []int{30, 20, 10}, 40, 2, 1},
+	}
+	for _, c := range cases {
+		var p Plan
+		p.fill(items(c.funcs...), c.max)
+		if len(p.Run) != c.run || len(p.Skipped) != c.skipped || p.Run[0].Pkg != "0" {
+			t.Errorf("%s: run %+v skipped %d, want %d (first is 0) and %d", c.name, p.Run, len(p.Skipped), c.run, c.skipped)
+		}
+	}
+}
+
+// Mutants at the same position keep their report order.
+func TestTallyKeepsSamePositionOrder(t *testing.T) {
+	mu := Tally([]model.Mutant{{Line: 2, Col: 3, Type: "B"}, {Line: 2, Col: 3, Type: "A"}, {Line: 1, Col: 9, Type: "C"}})
+	if got := mu.Mutants[0].Type + mu.Mutants[1].Type + mu.Mutants[2].Type; got != "CBA" {
+		t.Errorf("order %s", got)
+	}
+}
+
+// A package whose functions have no CRAP ranks below one whose highest CRAP
+// is the minimum (1); ties go by package path.
+func TestPlanOrderMissingCRAP(t *testing.T) {
+	g := model.Graph{
+		Nodes: []model.Node{
+			{ID: "m/a", Kind: model.KindPackage}, {ID: "m/a.f", Kind: model.KindFunc, Parent: "m/a"},
+			{ID: "m/b", Kind: model.KindPackage}, {ID: "m/b.g", Kind: model.KindFunc, Parent: "m/b"},
+		},
+		Metrics: map[model.ID]model.Metrics{"m/b.g": {CRAP: model.Ptr(1.0)}},
+	}
+	p := MakePlan(g, nil, nil, true, 0)
+	if len(p.Run) != 2 || p.Run[0].Pkg != "m/b" {
+		t.Fatalf("order %+v", p.Run)
+	}
+}
+
+func TestEnclosingAndCounted(t *testing.T) {
+	fns := []model.Node{{ID: "f", Line: 3, EndLine: 5}, {ID: "g", Line: 7, EndLine: 7}}
+	for line, want := range map[int]model.ID{3: "f", 5: "f", 7: "g", 6: "", 8: ""} {
+		if got, ok := enclosing(fns, line); got != want || ok != (want != "") {
+			t.Errorf("enclosing(%d) = %q %v", line, got, ok)
+		}
+	}
+	for status, want := range map[string]bool{Killed: true, Lived: true, NotCovered: true, TimedOut: true, NotViable: false, Skipped: false, Runnable: false} {
+		if counted(status) != want {
+			t.Errorf("counted(%s) != %v", status, want)
+		}
+	}
+}
+
+func TestLater(t *testing.T) {
+	t1, t2 := time.Unix(100, 0), time.Unix(200, 0)
+	cases := []struct{ a, b, want *time.Time }{{nil, &t1, &t1}, {&t1, nil, &t1}, {&t1, &t2, &t2}, {&t2, &t1, &t2}, {nil, nil, nil}}
+	for _, c := range cases {
+		if got := later(c.a, c.b); got != c.want {
+			t.Errorf("later(%v, %v) = %v, want %v", c.a, c.b, got, c.want)
+		}
 	}
 }

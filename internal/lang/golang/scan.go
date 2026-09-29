@@ -302,8 +302,14 @@ func (s *scanner) targetExists(e model.Edge) bool {
 	if e.Kind != model.EdgeCallsDynamic {
 		return s.ids[e.To]
 	}
-	i := strings.LastIndex(string(e.To), ".")
-	return i > 0 && s.ids[e.To[:i]]
+	iface, ok := methodOwner(e.To)
+	return ok && s.ids[iface]
+}
+
+// methodOwner is the type part of a method ID: "p.T" for "p.T.M".
+func methodOwner(id model.ID) (model.ID, bool) {
+	i := strings.LastIndex(string(id), ".")
+	return id[:max(i, 0)], i > 0
 }
 
 // shortModuleName is the display name of a module path: the last element

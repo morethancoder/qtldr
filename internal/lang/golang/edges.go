@@ -33,12 +33,22 @@ func recvTypeName(e ast.Expr) string {
 		return recvTypeName(t.X)
 	case *ast.ParenExpr:
 		return recvTypeName(t.X)
-	case *ast.IndexExpr:
-		return recvTypeName(t.X)
-	case *ast.IndexListExpr:
-		return recvTypeName(t.X)
+	}
+	if x := genericBase(e); x != nil {
+		return recvTypeName(x)
 	}
 	return ""
+}
+
+// genericBase is T of an instantiated receiver type T[P] or T[P, Q], or nil.
+func genericBase(e ast.Expr) ast.Expr {
+	switch t := e.(type) {
+	case *ast.IndexExpr:
+		return t.X
+	case *ast.IndexListExpr:
+		return t.X
+	}
+	return nil
 }
 
 // funcID is <pkg>.<Func> or <pkg>.<Type>.<Method>.
@@ -139,13 +149,8 @@ func (s *scanner) addExternals(ctx context.Context, external map[string][]string
 // addExternal adds the node and edges for one external import. mod is the
 // module path, or "" for the standard library.
 func (s *scanner) addExternal(mod, imp string, importers []string) {
-	id, name := mod, externalName(mod)
-	switch {
-	case mod == "" && !s.cfg.ShowStdlib:
-		return
-	case mod == "":
-		id, name = imp, imp
-	case s.cfg.ExternalModules == "hidden":
+	id, name, shown := s.externalNode(mod, imp)
+	if !shown {
 		return
 	}
 	if !s.ids[model.ID(id)] {
@@ -154,6 +159,16 @@ func (s *scanner) addExternal(mod, imp string, importers []string) {
 	for _, from := range importers {
 		s.addEdge(model.ID(from), model.ID(id), model.EdgeImports)
 	}
+}
+
+// externalNode is the node ID and name for an external import, and whether
+// it is shown: the standard library only with show_stdlib (one node per
+// package), other modules unless external_modules = "hidden" (one per module).
+func (s *scanner) externalNode(mod, imp string) (string, string, bool) {
+	if mod == "" {
+		return imp, imp, s.cfg.ShowStdlib
+	}
+	return mod, externalName(mod), s.cfg.ExternalModules != "hidden"
 }
 
 // moduleOf maps each import path to its module path ("" for the standard

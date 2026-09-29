@@ -43,9 +43,82 @@ func TestParseMergesDuplicates(t *testing.T) {
 }
 
 func TestParseErrors(t *testing.T) {
-	for _, in := range []string{"a.go:1.1,2.2 1 1\n", "mode: set\na.go 1 1\n", "mode: set\na.go:1.x,2.2 1 1\n"} {
-		if _, err := Parse(strings.NewReader(in)); err == nil {
-			t.Errorf("%q: want error", in)
+	cases := []struct{ in, want string }{
+		{"a.go:1.1,2.2 1 1\n", "no mode line"},
+		{"mode: set\na.go 1 1\n", "line 2: \"a.go 1 1\": missing ':'"},
+		{"mode: set\n\na.go:1.x,2.2 1 1\n", "line 3: "}, // blank lines count
+		{"mode: set\na.go:1.1,2.2 1\n", "want file:l.c,l.c stmts count"},
+		{"mode: set\na.go:" + strings.Repeat("9", 1<<20) + ".1,2.2 1 1\n", "token too long"},
+	}
+	for _, c := range cases {
+		_, err := Parse(strings.NewReader(c.in))
+		if err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%.40q: error %v, want %q", c.in, err, c.want)
+		}
+	}
+}
+
+// Lines longer than bufio's 64 KiB default (long generated file paths) parse;
+// the scanner allows up to 1 MiB.
+func TestParseLongLine(t *testing.T) {
+	file := strings.Repeat("d/", 50_000) + "a.go"
+	p := parse(t, "mode: set\n"+file+":1.1,2.2 1 1\n")
+	if len(p.Blocks) != 1 || p.Blocks[0].File != file {
+		t.Fatalf("blocks %d", len(p.Blocks))
+	}
+}
+
+// A block line is only checked for shape: an empty file name parses (Map
+// then matches it to no function).
+func TestParseBlockEmptyFile(t *testing.T) {
+	b, err := parseBlock(":1.2,3.4 5 6")
+	if err != nil || b != (Block{StartLine: 1, StartCol: 2, EndLine: 3, EndCol: 4, NumStmt: 5, Count: 6}) {
+		t.Fatalf("%+v %v", b, err)
+	}
+}
+
+func TestFuncsOf(t *testing.T) {
+	g := model.Graph{Nodes: []model.Node{
+		{ID: "m/p", Kind: model.KindPackage, File: "p/doc.go"},
+		{ID: "m/p.f", Kind: model.KindFunc, File: "p/a.go", Line: 3, EndLine: 9},
+		{ID: "m/p.T", Kind: model.KindType, File: "p/a.go", Line: 11, EndLine: 12},
+	}}
+	if got := FuncsOf(g); !slices.Equal(got, []Func{{ID: "m/p.f", File: "p/a.go", Line: 3, EndLine: 9}}) {
+		t.Fatalf("got %+v", got)
+	}
+}
+
+func TestDirOf(t *testing.T) {
+	for file, want := range map[string]string{"a.go": ".", "p/a.go": "p", "p/q/a.go": "p/q", "/a.go": ""} {
+		if got := dirOf(file); got != want {
+			t.Errorf("dirOf(%q) = %q, want %q", file, got, want)
+		}
+	}
+}
+
+// A block is inside a function when it starts on or after its first line and
+// ends on or before its last.
+func TestInside(t *testing.T) {
+	bs := []Block{{StartLine: 2, EndLine: 3}, {StartLine: 3, EndLine: 5}, {StartLine: 5, EndLine: 8}, {StartLine: 6, EndLine: 9}}
+	got := inside(bs, 3, 8)
+	if len(got) != 2 || got[0].StartLine != 3 || got[1].EndLine != 8 {
+		t.Fatalf("got %+v", got)
+	}
+}
+
+func TestTail(t *testing.T) {
+	cases := []struct {
+		in   string
+		n    int
+		want string
+	}{
+		{"a\nb\nc\n", 2, "b\nc"},
+		{"a\nb\n", 2, "a\nb"}, // exactly n lines: all of them
+		{"a\n", 5, "a"},
+	}
+	for _, c := range cases {
+		if got := tail([]byte(c.in), c.n); got != c.want {
+			t.Errorf("tail(%q, %d) = %q, want %q", c.in, c.n, got, c.want)
 		}
 	}
 }
@@ -123,6 +196,38 @@ func TestCacheUpdateResolve(t *testing.T) {
 	}
 	if _, ok := res["m/q.h"]; ok {
 		t.Error("functions of a failed package are not measured")
+	}
+}
+
+// Update replaces only the packages that ran: other packages' entries and
+// errors stay. A zero Cache (read from an older file) is usable.
+func TestCacheUpdateKeepsOtherPackages(t *testing.T) {
+	g := model.Graph{Nodes: []model.Node{
+		{ID: "m/p.f", Kind: model.KindFunc, Parent: "m/p"},
+		{ID: "m/q.g", Kind: model.KindFunc, Parent: "m/q"},
+	}}
+	at := time.Date(2026, 9, 28, 10, 0, 0, 0, time.UTC)
+	var c Cache
+	c.Update(g, nil, []model.ID{"m/p"}, nil, at)
+	c.Update(g, nil, []model.ID{"m/q"}, map[model.ID]string{"m/q": "build failed"}, at)
+	c.Update(g, nil, []model.ID{"m/p"}, nil, at)
+	if _, ok := c.Functions["m/p.f"]; !ok || c.PackageErrors["m/q"] != "build failed" {
+		t.Fatalf("functions %v errors %v", c.Functions, c.PackageErrors)
+	}
+	c.Update(g, nil, []model.ID{"m/q"}, nil, at)
+	if _, ok := c.Functions["m/p.f"]; !ok || len(c.PackageErrors) != 0 {
+		t.Fatalf("after m/q passed: functions %v errors %v", c.Functions, c.PackageErrors)
+	}
+	c.Functions["m/r.h"] = Entry{} // same-length package path, not a prefix
+	c.Functions["m/p"] = Entry{}   // the package path itself is no function of it
+	c.forget([]model.ID{"m/p"})
+	if _, ok := c.Functions["m/p.f"]; ok {
+		t.Error("m/p.f is forgotten")
+	}
+	for _, id := range []model.ID{"m/r.h", "m/p"} {
+		if _, ok := c.Functions[id]; !ok {
+			t.Errorf("%s must stay", id)
+		}
 	}
 }
 
