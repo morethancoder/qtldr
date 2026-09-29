@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Snapshot, Thresholds } from './api'
 import {
   fuzzy, functionChips, functionView, gradeOf, index, moduleView, packageOf, packageProblems,
-  packageView, riskiest, searchItems, short, typeView, worstPackage,
+  greenShare, packageView, riskiest, searchItems, short, typeView, worstPackage,
 } from './model'
 import { formatRoute, parseRoute } from './route'
 import { bounds, layered, toElk } from './layout'
@@ -97,6 +97,14 @@ describe('view model', () => {
     expect(v.types).toEqual([`${P}.Rule`, `${P}.Pricer`])
     expect(v.edges).toEqual([[`${P}.price`, `${P}.applyTiered`]])
     expect(v.calls).toEqual([[`${P}.applyTiered`, MONEY]])
+  })
+
+  it('green share: functions with a combined grade of 9 or 10', () => {
+    const all = ix.snap.nodes.filter((n) => n.kind === 'func')
+    const green = all.filter((f) => (ix.snap.metrics[f.id]?.grades?.combined ?? 0) >= 9)
+    expect(greenShare(ix)).toEqual({ green: green.length, total: all.length })
+    expect(greenShare(ix, P).total).toBe(4)
+    expect(greenShare(ix, 'nope')).toEqual({ green: 0, total: 0 })
   })
 
   it('function level: callers and callees', () => {

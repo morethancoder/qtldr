@@ -134,6 +134,12 @@ terms:
     links:
       - {text: "Grading inspired by uml-viewer", url: "https://github.com/unclebob/uml-viewer"}
 
+  green:
+    title: "Green functions"
+    short: "How many functions have a combined grade of 9 or 10."
+    body: "A package's grade is its worst function, so one weak function colors the whole package. This shows how much of it is already healthy."
+    good: "Higher is better. At 100% the package itself turns green."
+
   stale:
     title: "Stale"
     short: "The code changed after this number was measured."

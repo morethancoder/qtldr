@@ -361,3 +361,14 @@ export function typeView(ix: Index, id: string): { methods: string[]; implements
     implementedBy: impl.filter((e) => e.to === id).map((e) => e.from).sort(),
   }
 }
+
+/** GREEN is the lowest combined grade the map shows green (UI.md §3). */
+export const GREEN = 9
+
+/** greenShare: functions of pkg (all of them for the module) and how many
+ * have a green combined grade; the share behind a worst-of package grade. */
+export function greenShare(ix: Index, pkg?: string): { green: number; total: number } {
+  const funcs = ix.snap.nodes.filter((n) => n.kind === 'func' && (!pkg || n.parent === pkg))
+  const green = funcs.filter((f) => (metricsOf(ix, f.id).grades?.combined ?? 0) >= GREEN).length
+  return { green, total: funcs.length }
+}

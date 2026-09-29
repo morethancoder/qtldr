@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -94,5 +95,32 @@ func TestFormatHelpers(t *testing.T) {
 	}{"b.go"})
 	if got := p.Files(); strings.Join(got, ",") != "a.go,b.go" {
 		t.Errorf("Files %v", got)
+	}
+}
+
+func TestGreenRow(t *testing.T) {
+	g := model.Graph{
+		Nodes: []model.Node{
+			{ID: "m", Kind: model.KindModule},
+			{ID: "m/p", Kind: model.KindPackage},
+			{ID: "m/p.a", Kind: model.KindFunc, Parent: "m/p"},
+			{ID: "m/p.b", Kind: model.KindFunc, Parent: "m/p"},
+			{ID: "m/q", Kind: model.KindPackage},
+		},
+		Metrics: map[model.ID]model.Metrics{"m/p.a": {Grades: &model.Grades{Combined: 10}}},
+	}
+	cases := []struct {
+		n    model.Node
+		want string
+	}{
+		{g.Nodes[0], "[{Green functions 1 of 2 (50%)}]"},
+		{g.Nodes[1], "[{Green functions 1 of 2 (50%)}]"},
+		{g.Nodes[2], "[]"}, // functions have their own grade
+		{g.Nodes[4], "[]"}, // no functions
+	}
+	for _, c := range cases {
+		if got := fmt.Sprint(greenRow(g, c.n)); got != c.want {
+			t.Errorf("greenRow(%s) = %s, want %s", c.n.ID, got, c.want)
+		}
 	}
 }

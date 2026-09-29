@@ -147,3 +147,34 @@ func TestFunctionGrades(t *testing.T) {
 		}
 	}
 }
+
+func TestGreenShare(t *testing.T) {
+	g := model.Graph{
+		Nodes: []model.Node{
+			{ID: "m/p", Kind: model.KindPackage},
+			{ID: "m/p.a", Kind: model.KindFunc, Parent: "m/p"},
+			{ID: "m/p.b", Kind: model.KindFunc, Parent: "m/p"},
+			{ID: "m/p.c", Kind: model.KindFunc, Parent: "m/p"},
+			{ID: "m/q.d", Kind: model.KindFunc, Parent: "m/q"},
+		},
+		Metrics: map[model.ID]model.Metrics{
+			"m/p.a": {Grades: &model.Grades{Combined: 9}},
+			"m/p.b": {Grades: &model.Grades{Combined: 8}},
+			"m/q.d": {Grades: &model.Grades{Combined: 10}},
+		},
+	}
+	cases := []struct {
+		scope        model.ID
+		green, total int
+	}{
+		{"m/p", 1, 3}, // m/p.c has no grades yet: counted, not green
+		{"m/q", 1, 1},
+		{"", 2, 4}, // the whole module
+		{"m/none", 0, 0},
+	}
+	for _, c := range cases {
+		if green, total := GreenShare(g, c.scope); green != c.green || total != c.total {
+			t.Errorf("GreenShare(%q) = %d of %d, want %d of %d", c.scope, green, total, c.green, c.total)
+		}
+	}
+}

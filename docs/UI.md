@@ -77,7 +77,8 @@ Order, top to bottom (omit empty sections):
 3. Subtitle (mono 12px muted): import path + counts for packages; `file:line` for functions.
 4. Signature box (functions).
 5. **Metric rows**, 32px each: label · `?` · value (mono) · 10px grade chip. Hover or focus on the row shows the tooltip to the left of the inspector; clicking `?` pins it (with a close ×).
-   - Package: CRAP max, CRAP average, Coverage, Mutation score, Surviving mutants, Not-covered mutants, Churn.
+   - Package: CRAP max, CRAP average, Coverage, Mutation score, Surviving mutants, Not-covered mutants, Churn, Green functions (`92 of 124 · 74%`: combined grade 9–10; the share behind a worst-of grade).
+   - Module (nothing selected at level 0): Green functions.
    - Function: CRAP, Cyclomatic (CC), Cognitive, Coverage, Mutation score, Surviving mutants, Not-covered mutants, Churn (file).
    - Other-package function: CRAP, Coverage, Mutation score.
 6. **List** (buttons): package → "Riskiest functions" (up to 3: name, reason, CRAP colored); function → "Surviving mutants" (`L29`, `>= → >`, count); type → "Fields".

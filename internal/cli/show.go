@@ -9,6 +9,7 @@ import (
 
 	"github.com/morethancoder/qtldr/internal/check"
 	"github.com/morethancoder/qtldr/internal/coverage"
+	"github.com/morethancoder/qtldr/internal/metrics"
 	"github.com/morethancoder/qtldr/internal/model"
 	"github.com/morethancoder/qtldr/internal/store"
 )
@@ -29,8 +30,26 @@ func runShow(e *env, _ *flag.FlagSet, args []string) error {
 	if e.g.json {
 		return e.printJSON(d)
 	}
-	printDetail(e.stdout, d)
+	printDetail(e.stdout, d, greenRow(snap.Graph, d.Node)...)
 	return nil
+}
+
+// greenRow is "Green functions: 92 of 124 (74%)" for a package or the
+// module: the share behind a package grade that shows only the worst.
+func greenRow(g model.Graph, n model.Node) []row {
+	scope := n.ID
+	switch n.Kind {
+	case model.KindModule:
+		scope = ""
+	case model.KindPackage:
+	default:
+		return nil
+	}
+	green, total := metrics.GreenShare(g, scope)
+	if total == 0 {
+		return nil
+	}
+	return []row{{"Green functions", fmt.Sprintf("%d of %d (%d%%)", green, total, green*100/total)}}
 }
 
 func (e *env) readSnapshot() (model.Snapshot, error) {
@@ -41,7 +60,7 @@ func (e *env) readSnapshot() (model.Snapshot, error) {
 	return store.ReadSnapshot(root)
 }
 
-func printDetail(w io.Writer, d model.Detail) {
+func printDetail(w io.Writer, d model.Detail, extra ...row) {
 	n := d.Node
 	fmt.Fprintf(w, "%s  (%s%s)\n%s\n", n.Name, kindLabel(n), purityLabel(n), n.ID)
 	if n.File != "" {
@@ -60,7 +79,7 @@ func printDetail(w io.Writer, d model.Detail) {
 	if d.Metrics != nil {
 		m = *d.Metrics
 	}
-	printRows(w, metricRows(n, m))
+	printRows(w, append(metricRows(n, m), extra...))
 	printCoverageLines(w, n, m.Coverage)
 	printSurvivors(w, n, m.Mutation)
 	printFields(w, n.Fields)

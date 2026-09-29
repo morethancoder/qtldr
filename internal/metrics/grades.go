@@ -138,3 +138,22 @@ func Worst(a, b model.Grades) model.Grades {
 
 // Round1 rounds to one decimal place.
 func Round1(v float64) float64 { return math.Round(v*10) / 10 }
+
+// Green is the lowest combined grade the map shows green (docs/UI.md §3).
+const Green = 9
+
+// GreenShare counts the functions of package pkg ("" = every function) and
+// how many of them have a green combined grade; a function without grades
+// counts as not green.
+func GreenShare(g model.Graph, pkg model.ID) (green, total int) {
+	for _, n := range g.Nodes {
+		if n.Kind != model.KindFunc || (pkg != "" && n.Parent != pkg) {
+			continue
+		}
+		total++
+		if gr := g.Metrics[n.ID].Grades; gr != nil && gr.Combined >= Green {
+			green++
+		}
+	}
+	return green, total
+}

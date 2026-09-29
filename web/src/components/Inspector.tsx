@@ -3,7 +3,7 @@
 
 import { useState, type ReactNode } from 'react'
 import type { Config, Detail, Glossary, Metrics, QNode } from '../api'
-import { fmt, funcsOf, GROUP, groupMetrics, metricsOf, moduleView, riskiest, short, typeView, typesOf, type Index } from '../model'
+import { fmt, funcsOf, greenShare, GROUP, groupMetrics, metricsOf, moduleView, riskiest, short, typeView, typesOf, type Index } from '../model'
 import { gradeColor, type Palette } from '../theme'
 import { Help, type TipState } from './Tooltip'
 
@@ -98,7 +98,7 @@ function describe(p: Props, node: QNode, m: Metrics): Spec {
     case 'type': return typeSpec(p, node)
     case 'external': return { kind: 'External module', title: node.name, sub: 'Not analyzed. Shown so you can see what the code depends on.', rows: [] }
   }
-  return { kind: 'Module', title: node.name, sub: node.id, rows: [] }
+  return { kind: 'Module', title: node.name, sub: node.id, rows: [greenRow(greenShare(p.ix))] }
 }
 
 function mutRows(m: Metrics): RowSpec[] {
@@ -108,6 +108,12 @@ function mutRows(m: Metrics): RowSpec[] {
     { key: 'survived', label: 'Surviving mutants', value: mu ? String(mu.survived) : '—' },
     { key: 'not_covered', label: 'Not-covered mutants', value: mu ? String(mu.not_covered) : '—' },
   ]
+}
+
+/** greenRow: "92 of 124 · 74%" functions with a green combined grade. */
+function greenRow(s: { green: number; total: number }): RowSpec {
+  const pct = s.total === 0 ? '' : ` · ${Math.floor((s.green * 100) / s.total)}%`
+  return { key: 'green', label: 'Green functions', value: `${s.green} of ${s.total}${pct}` }
 }
 
 function coverageRow(m: Metrics, grade: number | undefined): RowSpec {
@@ -131,6 +137,7 @@ function packageSpec(p: Props, node: QNode, m: Metrics): Spec {
       coverageRow(m, m.grades?.coverage),
       ...mutRows(m),
       { key: 'churn', label: 'Churn', value: commits(m.churn) },
+      greenRow(greenShare(p.ix, node.id)),
     ],
     list: risky.length > 0 && (
       <List title="Riskiest functions" items={risky.map((r) => ({
