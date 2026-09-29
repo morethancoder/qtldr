@@ -13,9 +13,11 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/morethancoder/qtldr/internal/check"
 	"github.com/morethancoder/qtldr/internal/config"
 	"github.com/morethancoder/qtldr/internal/focus"
 	"github.com/morethancoder/qtldr/internal/notes"
+	"github.com/morethancoder/qtldr/internal/store"
 )
 
 var now = time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
@@ -112,8 +114,18 @@ func TestTools(t *testing.T) {
 	}
 
 	// Coverage first, so CRAP and uncovered lines exist.
-	if out, isErr := call(t, cs, "refresh", map[string]any{"scope": "internal/pricing", "coverage": true}); isErr || !strings.Contains(out, `"crap":30`) {
+	out, isErr := call(t, cs, "refresh", map[string]any{"scope": "internal/pricing", "coverage": true})
+	if isErr || !strings.Contains(out, `"crap":30`) {
 		t.Fatalf("refresh: %s", out)
+	}
+	var scoped RefreshResult
+	if err := json.Unmarshal([]byte(out), &scoped); err != nil || scoped.More != 0 || len(scoped.Scope) == 0 {
+		t.Fatalf("scoped refresh: %s", out)
+	}
+	for _, v := range scoped.Scope {
+		if !strings.HasPrefix(string(v.ID), "github.com/acme/ledger/internal/pricing.") {
+			t.Errorf("outside the scope: %s", v.ID)
+		}
 	}
 
 	cases := []struct {
@@ -158,8 +170,25 @@ func TestTools(t *testing.T) {
 		t.Errorf("agent ping %+v %v", ping, err)
 	}
 	all, _ := notes.Load(root)
-	if len(all) != 1 || all[0].Author != "agent:test-agent" {
+	if len(all) != 1 || all[0].Author != "agent:test-agent" || !all[0].Created.Equal(now) {
 		t.Errorf("notes %+v", all)
+	}
+
+	out, _ = call(t, cs, "get_overview", nil)
+	var o Overview
+	if err := json.Unmarshal([]byte(out), &o); err != nil || len(o.Packages) != 6 || len(o.TopRisks) == 0 {
+		t.Errorf("overview: %d packages, %d risks: %.500s", len(o.Packages), len(o.TopRisks), out)
+	}
+
+	// No scope: the whole module, 15 at a time.
+	out, isErr = call(t, cs, "refresh", map[string]any{})
+	var whole RefreshResult
+	snap, err := store.ReadSnapshot(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(out), &whole); isErr || err != nil || len(whole.Scope) != 15 || whole.More != len(check.All(snap.Graph))-15 {
+		t.Errorf("whole-module refresh: %d shown, %d more of %d: %.300s", len(whole.Scope), whole.More, len(check.All(snap.Graph)), out)
 	}
 }
 

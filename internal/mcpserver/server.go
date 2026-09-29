@@ -220,12 +220,17 @@ func (s *service) getFocus(ctx context.Context, _ string, _ empty) (FocusResult,
 	}
 	d, _ := snap.Detail(n.ID)
 	all, _ := notes.Load(s.opt.Root)
-	res := FocusResult{Focus: f, Message: f.Message, Node: v,
-		FixPrompt: focus.Prompt(d, s.opt.Config.Thresholds, notes.PlaceAll(s.opt.Root, all, n), f.Message)}
-	if f.SelectedLine > 0 {
-		res.SelectedLine = lineText(notes.FuncLines(s.opt.Root, n), n.Line, f.SelectedLine)
+	return FocusResult{Focus: f, Message: f.Message, Node: v, SelectedLine: selectedText(s.opt.Root, n, f.SelectedLine),
+		FixPrompt: focus.Prompt(d, s.opt.Config.Thresholds, notes.PlaceAll(s.opt.Root, all, n), f.Message)}, nil
+}
+
+// selectedText is the trimmed text of the selected line of n; "" when no
+// line is selected (line 0) or the line is outside n.
+func selectedText(root string, n model.Node, line int) string {
+	if line < 1 {
+		return ""
 	}
-	return res, nil
+	return lineText(notes.FuncLines(root, n), n.Line, line)
 }
 
 func lineText(lines []string, start, line int) string {

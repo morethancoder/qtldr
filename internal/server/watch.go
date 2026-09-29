@@ -38,18 +38,26 @@ func (s *Server) Watch(ctx context.Context) error {
 // watchLoop debounces relevant events into re-scans until ctx is done.
 func (s *Server) watchLoop(ctx context.Context, events <-chan fsnotify.Event, errs <-chan error, add func(string) error) error {
 	var timer <-chan time.Time
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case ev := <-events:
-			timer = onEvent(ev, add, timer)
-		case err := <-errs:
-			s.logf("watch: %v", err)
-		case <-timer:
-			timer = s.onTimer(ctx)
-		}
+	for running := true; running; {
+		timer, running = s.watchStep(ctx, events, errs, add, timer)
 	}
+	return nil
+}
+
+// watchStep waits for one event, error or debounce timer and returns the
+// next timer; running is false once ctx is done.
+func (s *Server) watchStep(ctx context.Context, events <-chan fsnotify.Event, errs <-chan error, add func(string) error, timer <-chan time.Time) (next <-chan time.Time, running bool) {
+	select {
+	case <-ctx.Done():
+		return nil, false
+	case ev := <-events:
+		return onEvent(ev, add, timer), true
+	case err := <-errs:
+		s.logf("watch: %v", err)
+	case <-timer:
+		return s.onTimer(ctx), true
+	}
+	return timer, true
 }
 
 // onEvent (re)starts the debounce timer for a relevant event.

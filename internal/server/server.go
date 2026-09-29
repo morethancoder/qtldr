@@ -106,14 +106,21 @@ func (s *Server) Listen(port int) (net.Listener, string, error) {
 	return ln, "http://" + ln.Addr().String() + "/", nil
 }
 
+// HTTP timeouts: reading a request's headers, and waiting for open
+// requests when the server stops.
+const (
+	readHeaderTimeout = 10 * time.Second
+	shutdownTimeout   = 2 * time.Second
+)
+
 // Serve serves on ln until ctx is done.
 func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
-	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: readHeaderTimeout}
 	go s.pollAgent(ctx)
 	go func() {
 		<-ctx.Done()
 		s.events.close()
-		shutdown, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		shutdown, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 		_ = srv.Shutdown(shutdown)
 	}()
