@@ -1,10 +1,13 @@
 // Automatic layout with ELK "layered", direction DOWN (importers above
 // importees, callers above callees). Nodes are measured by React Flow first,
-// then laid out here (docs/decisions.md #8).
+// then laid out here (docs/decisions.md #8). flow.ts picks each node's row;
+// ELK keeps those rows (INTERACTIVE layering reads them from the input y),
+// orders and centers the cards within them, and routes the arrows.
 
 import type { ELK as ElkInstance, ElkNode } from 'elkjs/lib/elk.bundled.js'
+import type { Rows } from './flow'
 
-export interface Sized { id: string; width: number; height: number; last?: boolean }
+export interface Sized { id: string; width: number; height: number }
 export interface Point { x: number; y: number }
 
 // ELK is large; load it on first layout so the first paint does not wait.
@@ -28,8 +31,24 @@ export const layeredOptions: Record<string, string> = {
   'elk.padding': '[top=0,left=0,bottom=0,right=0]',
 }
 
-/** toElk builds the ELK input; duplicate edges and self-loops are dropped. */
-export function toElk(nodes: Sized[], edges: [string, string][]): ElkNode {
+/** Row mode: keep the given rows, center each card over its children, and
+ * draw arrows as smooth curves (splinePath) instead of long right-angle lanes. */
+export const rowOptions: Record<string, string> = {
+  'elk.layered.layering.strategy': 'INTERACTIVE',
+  'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
+  'elk.edgeRouting': 'SPLINES',
+  // Lay the whole map out as one graph, or ELK packs each connected piece
+  // (and every card without arrows) separately and the rows are lost.
+  'elk.separateConnectedComponents': 'false',
+}
+
+/** ROW_GAP is the input y distance between rows; any value larger than a
+ * card works, since ELK only reads the order. */
+const ROW_GAP = 1000
+
+/** toElk builds the ELK input; duplicate edges and self-loops are dropped.
+ * With rows, children are listed in flow order and placed on their rows. */
+export function toElk(nodes: Sized[], edges: [string, string][], rows?: Rows): ElkNode {
   const ids = new Set(nodes.map((n) => n.id))
   const seen = new Set<string>()
   const elkEdges = []
@@ -39,12 +58,14 @@ export function toElk(nodes: Sized[], edges: [string, string][]): ElkNode {
     seen.add(key)
     elkEdges.push({ id: `e${elkEdges.length}`, sources: [from], targets: [to] })
   }
+  const rank = new Map(rows?.order.map((id, i) => [id, i]))
+  const ordered = rows ? [...nodes].sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity)) : nodes
   return {
     id: 'root',
-    layoutOptions: layeredOptions,
-    children: nodes.map((n) => ({
+    layoutOptions: rows ? { ...layeredOptions, ...rowOptions } : layeredOptions,
+    children: ordered.map((n, i) => ({
       id: n.id, width: n.width, height: n.height,
-      ...(n.last ? { layoutOptions: { 'elk.layered.layering.layerConstraint': 'LAST' } } : {}),
+      ...(rows ? { x: i, y: (rows.row.get(n.id) ?? 0) * ROW_GAP } : {}),
     })),
     edges: elkEdges,
   }
@@ -69,9 +90,74 @@ export function routes(result: ElkNode): Map<string, Point[]> {
 
 export interface Layout { at: Map<string, Point>; routes: Map<string, Point[]> }
 
-export async function layered(nodes: Sized[], edges: [string, string][]): Promise<Layout> {
-  const result = await (await getElk()).layout(toElk(nodes, edges))
+export async function layered(nodes: Sized[], edges: [string, string][], rows?: Rows): Promise<Layout> {
+  const result = await (await getElk()).layout(toElk(nodes, edges, rows))
   return { at: positions(result), routes: routes(result) }
+}
+
+/** strip lays pills out in centered rows under a map (external modules,
+ * other packages): at most width wide, starting at top. */
+export function strip(pills: Sized[], centerX: number, top: number, width: number, gap = 12): Map<string, Point> {
+  const lines: Sized[][] = [[]]
+  let used = 0
+  for (const p of pills) {
+    const line = lines[lines.length - 1]!
+    if (line.length > 0 && used + gap + p.width > width) {
+      lines.push([p])
+      used = p.width
+    } else {
+      used += (line.length > 0 ? gap : 0) + p.width
+      line.push(p)
+    }
+  }
+  const out = new Map<string, Point>()
+  let y = top
+  for (const line of lines) {
+    const w = line.reduce((sum, p) => sum + p.width, 0) + gap * Math.max(0, line.length - 1)
+    let x = centerX - w / 2
+    for (const p of line) {
+      out.set(p.id, { x, y })
+      x += p.width + gap
+    }
+    y += Math.max(0, ...line.map((p) => p.height)) + gap
+  }
+  return out
+}
+
+export interface Viewport { x: number; y: number; zoom: number }
+
+/** READABLE is the smallest zoom a map opens at: card text stays legible. */
+export const READABLE = 0.7
+
+/** openingView shows the top of the content at a readable zoom: all of its
+ * width when that fits, else centered on focusX (the entry). With edges, it
+ * does not scroll past either edge of the content (a package box stays in
+ * view with its header). */
+export function openingView(content: { x: number; y: number; width: number; height: number }, focusX: number, pane: { width: number; height: number }, edges = false, pad = 24): Viewport {
+  const zoom = Math.min(1, Math.max(READABLE, (pane.width - 2 * pad) / Math.max(1, content.width)))
+  const y = pad - content.y * zoom
+  if (content.width * zoom <= pane.width - 2 * pad) return { x: (pane.width - content.width * zoom) / 2 - content.x * zoom, y, zoom }
+  const centered = pane.width / 2 - focusX * zoom
+  if (!edges) return { x: centered, y, zoom }
+  const leftEdge = pad - content.x * zoom
+  const rightEdge = pane.width - pad - (content.x + content.width) * zoom
+  return { x: Math.min(leftEdge, Math.max(rightEdge, centered)), y, zoom }
+}
+
+/** splinePath draws an ELK spline route: after the start point, every three
+ * points are one cubic segment (two control points, then its end). Other
+ * routes are drawn as straight segments. */
+export function splinePath(points: Point[]): string {
+  if (points.length === 0) return ''
+  const [first, ...rest] = points
+  const start = `M${first!.x},${first!.y}`
+  if (rest.length === 0 || rest.length % 3 !== 0) return [start, ...rest.map((p) => `L${p.x},${p.y}`)].join(' ')
+  const segs: string[] = []
+  for (let i = 0; i < rest.length; i += 3) {
+    const [a, b, c] = [rest[i]!, rest[i + 1]!, rest[i + 2]!]
+    segs.push(`C${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y}`)
+  }
+  return [start, ...segs].join(' ')
 }
 
 /** roundedPath draws an orthogonal route with rounded corners. */

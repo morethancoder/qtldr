@@ -47,16 +47,19 @@ Double-click a card = open it (drill in). Single click = select (inspector). Ent
 ## 4. Levels
 
 ### Level 0 — Module
-- Packages of the module as cards (width 236px). Arrows = imports (package → package). External modules as pills beside their importers.
-- Layout: ELK `layered`, direction DOWN, importers above importees. Collapse multiple edges between the same two nodes into one.
+- Packages of the module as cards (width 236px), laid out as a **flow from the entry**: row 0 holds the packages nothing imports (the `cmd/…` mains); every package sits below everything that imports it (longest path), so all arrows point down and shared foundations sink to the bottom. Packages with no imports either way go last. A rank wider than 4 cards wraps into balanced rows, each spanning the width.
+- Arrows = imports, **backbone only**: an import is not drawn when a longer path already shows it (transitive reduction). Selecting a card outlines (accent border) every package it really imports or is imported by, including hidden ones; the backbone arrows touching it turn accent. Arrows are smooth curves.
+- External modules as pills in **one centered strip under the map**, without arrows; selecting a package outlines the modules it imports.
+- Layout: flow.ts chooses rows and order; ELK `layered` (INTERACTIVE layering keeps the rows, BK placement centers cards over their children, spline routing). Collapse multiple edges between the same two nodes into one.
+- Opening view: readable zoom (at least 70%, at most 100%), top of the map at the top, centered on the entry that reaches the most packages; `0` fits everything.
 - Caption: `<module> · packages · arrows show imports`.
 - More than 25 packages: group by first path segment(s) as group cards (a group card looks like a package card, rolls up the same way, and drills into its packages).
 
 ### Level 1 — Package
 - A **level box** fills the canvas: rounded 14px, fill = the package's grade color at 6% (dark) / 7% (light), border 1px at 35%. The box header (44px) holds a button with the package's λ, name and C/M dots (click selects the package itself), then the package's **types as pills** (click selects a type).
-- Functions as cards inside the box (width 200px), arrows = calls inside the package.
-- Functions of other module packages that are called appear as pills **outside the box, below it**, with arrows from the callers. Stdlib calls are not drawn.
-- Layout: ELK `layered` DOWN inside a compound node for the box; external pills in a partition below.
+- Functions as cards inside the box (width 240px), laid out as a flow like level 0: functions nothing in the package calls on top, callees below, functions with no calls either way last, rows of at most 4. Arrows = calls inside the package, backbone only; selecting a function outlines everything it calls or is called by.
+- Other module packages that are called appear as **one pill per package** (`name · N` functions called) in a strip **below the box**, without arrows; selecting a function outlines the packages it calls. Click selects the package, double-click opens it. Stdlib calls are not drawn.
+- Layout: as level 0, inside the box. Opening view as level 0, but it never scrolls past the box's edges, so the header stays in view.
 - More than 40 functions: show the 40 riskiest plus a "N more" card that expands in place.
 
 ### Level 2 — Function

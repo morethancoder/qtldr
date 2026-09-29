@@ -2,7 +2,7 @@
 // click selects, double-click / Enter twice / "o" opens.
 
 import { BaseEdge, Handle, Position, type Edge, type EdgeProps, type Node, type NodeProps } from '@xyflow/react'
-import { roundedPath, type Point } from '../layout'
+import { roundedPath, splinePath, type Point } from '../layout'
 import { useRef, type CSSProperties, type KeyboardEvent } from 'react'
 
 export interface CardData extends Record<string, unknown> {
@@ -170,11 +170,13 @@ export function Box({ data }: NodeProps<BoxNode>) {
 
 export const nodeTypes = { card: Card, pill: Pill, box: Box }
 
-export type RoutedEdge = Edge<{ points: Point[] }, 'routed'>
+export type RoutedEdge = Edge<{ points: Point[]; spline?: boolean }, 'routed'>
 
-/** Routed draws the orthogonal route ELK computed, with rounded corners. */
+/** Routed draws the route ELK computed: a spline, or an orthogonal route with
+ * rounded corners. */
 export function Routed({ id, data, style, markerEnd }: EdgeProps<RoutedEdge>) {
-  return <BaseEdge id={id} path={roundedPath(data?.points ?? [])} style={style} markerEnd={markerEnd} />
+  const pts = data?.points ?? []
+  return <BaseEdge id={id} path={data?.spline ? splinePath(pts) : roundedPath(pts)} style={style} markerEnd={markerEnd} />
 }
 
 export const edgeTypes = { routed: Routed }

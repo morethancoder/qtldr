@@ -217,37 +217,51 @@ function worstGrades(a: NonNullable<Metrics['grades']>, b: NonNullable<Metrics['
   return { crap: Math.min(a.crap, b.crap), coverage: Math.min(a.coverage, b.coverage), combined: Math.min(a.combined, b.combined), mutation: mut }
 }
 
+export interface Outside {
+  /** another package of the module */
+  pkg: string
+  /** its functions called from the shown ones */
+  funcs: string[]
+}
+
 export interface PackageView {
   funcs: string[]
   more: number
   types: string[]
-  /** functions of other module packages called from this one */
-  outside: string[]
+  /** other module packages called from this one, one entry per package */
+  outside: Outside[]
+  /** calls between the shown functions */
   edges: [string, string][]
+  /** shown function → other package it calls */
+  calls: [string, string][]
 }
 
 /** packageView: the package's functions (40 riskiest unless expanded), its
- * types, called functions of other packages, and call arrows. */
+ * types, the other packages it calls into, and call arrows. */
 export function packageView(ix: Index, pkg: string, expanded: boolean): PackageView {
   const all = funcsOf(ix, pkg)
   const shown = expanded || all.length <= MAX_FUNCS ? all : [...all].sort(byRisk(ix)).slice(0, MAX_FUNCS)
   const inBox = new Set(shown.map((f) => f.id))
-  const outside = new Set<string>()
+  const outside = new Map<string, Set<string>>()
   const edges = new Map<string, [string, string]>()
+  const calls = new Map<string, [string, string]>()
   for (const e of callEdges(ix.snap.edges)) {
-    if (!inBox.has(e.from)) continue
     const to = ix.byId.get(e.to)
-    if (!to || to.kind !== 'func') continue
-    if (to.parent !== pkg) outside.add(e.to)
-    else if (!inBox.has(e.to)) continue
-    edges.set(`${e.from}→${e.to}`, [e.from, e.to])
+    if (!inBox.has(e.from) || !to || to.kind !== 'func' || !to.parent) continue
+    if (to.parent === pkg) {
+      if (inBox.has(e.to)) edges.set(`${e.from}→${e.to}`, [e.from, e.to])
+      continue
+    }
+    outside.set(to.parent, (outside.get(to.parent) ?? new Set()).add(e.to))
+    calls.set(`${e.from}→${to.parent}`, [e.from, to.parent])
   }
   return {
     funcs: shown.map((f) => f.id),
     more: all.length - shown.length,
     types: typesOf(ix, pkg).map((t) => t.id),
-    outside: [...outside].sort(),
+    outside: [...outside].map(([p, fs]) => ({ pkg: p, funcs: [...fs].sort() })).sort((a, b) => a.pkg.localeCompare(b.pkg)),
     edges: [...edges.values()],
+    calls: [...calls.values()],
   }
 }
 

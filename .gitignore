@@ -17,3 +17,4 @@ testdata/ledger/target/
 .qtldr/logs/
 .playwright-mcp/
 .content/
+.claude/worktrees/

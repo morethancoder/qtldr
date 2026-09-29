@@ -7,14 +7,16 @@ import { alpha, gradeColor, type Palette } from '../theme'
 
 /** cardStyle: fill 16%/13%, border 55%/60%; selected = 2px accent + ring;
  * stale = dashed; no grade = neutral. */
-export function cardStyle(p: Palette, grade: number | null, selected: boolean, stale: boolean): CSSProperties {
+/** cardStyle: grade tint; the selected card gets an accent border and ring,
+ * cards related to the selection (imports, callers…) an accent border. */
+export function cardStyle(p: Palette, grade: number | null, selected: boolean, stale: boolean, related = false): CSSProperties {
   const color = grade === null ? null : gradeColor(p, grade)
   const lineStyle = stale ? 'dashed' : 'solid'
   const base: CSSProperties = color
     ? { background: alpha(color, p.tintA), border: `1px ${lineStyle} ${alpha(color, p.strokeA)}` }
     : { background: p.surface2, border: `1px ${lineStyle} ${p.border2}` }
-  if (!selected) return base
-  return { ...base, border: `2px ${lineStyle} ${p.accent}`, boxShadow: `0 0 0 4px ${p.accentSoft}, ${p.shadow}` }
+  if (selected) return { ...base, border: `2px ${lineStyle} ${p.accent}`, boxShadow: `0 0 0 4px ${p.accentSoft}, ${p.shadow}` }
+  return related ? { ...base, border: `1.5px ${lineStyle} ${p.accent}` } : base
 }
 
 /** boxStyle is the level box: 6%/7% fill, 35% border. */

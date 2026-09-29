@@ -90,12 +90,13 @@ describe('view model', () => {
     expect(v.groups).toEqual([])
   })
 
-  it('package level: calls inside, called functions outside, no interface targets', () => {
+  it('package level: calls inside, other packages grouped, no interface targets', () => {
     const v = packageView(ix, P, false)
     expect(v.funcs).toHaveLength(4)
-    expect(v.outside).toEqual([`${MONEY}.Mul`])
+    expect(v.outside).toEqual([{ pkg: MONEY, funcs: [`${MONEY}.Mul`] }])
     expect(v.types).toEqual([`${P}.Rule`, `${P}.Pricer`])
-    expect(v.edges).toEqual([[`${P}.price`, `${P}.applyTiered`], [`${P}.applyTiered`, `${MONEY}.Mul`]])
+    expect(v.edges).toEqual([[`${P}.price`, `${P}.applyTiered`]])
+    expect(v.calls).toEqual([[`${P}.applyTiered`, MONEY]])
   })
 
   it('function level: callers and callees', () => {
