@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"runtime"
@@ -48,16 +49,25 @@ func servePort(fs *flag.FlagSet, configured int) int {
 // startExtras starts the watcher and opens the browser when asked.
 func (e *env) startExtras(s *server.Server, url string, watch, open bool) {
 	if watch {
-		go func() {
-			if err := s.Watch(e.ctx); err != nil {
-				fmt.Fprintln(e.stderr, "warning: --watch stopped:", err)
-			}
-		}()
+		go e.watch(s)
 	}
 	if open {
 		if err := e.sys.Start(browserCommand(url)...); err != nil {
 			fmt.Fprintf(e.stderr, "warning: could not open a browser (%v); open %s yourself\n", err, url)
 		}
+	}
+}
+
+// watcher is the part of the server that --watch runs.
+type watcher interface {
+	Watch(ctx context.Context) error
+}
+
+// watch re-scans on file changes until the context ends; a failure is a
+// warning, since the server keeps serving.
+func (e *env) watch(s watcher) {
+	if err := s.Watch(e.ctx); err != nil {
+		fmt.Fprintln(e.stderr, "warning: --watch stopped:", err)
 	}
 }
 

@@ -108,18 +108,21 @@ func kindLabel(n model.Node) string {
 }
 
 func purityLabel(n model.Node) string {
-	switch {
-	case n.Pure == nil:
+	if n.Pure == nil {
 		return ""
-	case *n.Pure && n.Kind == model.KindPackage:
-		return " · λ pure core"
-	case *n.Pure:
-		return " · λ pure"
-	case n.Kind == model.KindPackage:
-		return " · effectful shell"
 	}
-	return " · effectful"
+	label := " · effectful"
+	if *n.Pure {
+		label = " · λ pure"
+	}
+	if n.Kind == model.KindPackage {
+		label += packageRole[*n.Pure]
+	}
+	return label
 }
+
+// packageRole names a package by purity: a pure core or an effectful shell.
+var packageRole = map[bool]string{true: " core", false: " shell"}
 
 func location(n model.Node) string {
 	if n.EndLine > n.Line {

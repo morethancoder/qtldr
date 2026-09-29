@@ -245,10 +245,7 @@ func (e evaluator) coverage(r *Report) {
 	var details []string
 	if c.Lines != nil && len(c.Lines.Uncovered) > 0 {
 		ranges := coverage.Ranges(c.Lines.Uncovered)
-		if len(ranges) > 10 {
-			ranges = ranges[:10]
-		}
-		hint = "add tests for lines " + path.Base(e.n.File) + ":" + strings.Join(ranges, ", ")
+		hint = "add tests for lines " + path.Base(e.n.File) + ":" + strings.Join(ranges[:min(len(ranges), 10)], ", ")
 	}
 	e.breach(r, KindCoverage, *c.Percent, limit, hint, details...)
 }

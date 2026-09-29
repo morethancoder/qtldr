@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/morethancoder/qtldr/internal/config"
@@ -179,7 +178,7 @@ func findCommand(name string) (command, bool) {
 func usage(w io.Writer) {
 	fmt.Fprintln(w, "qtldr shows how risky Go code is to change.\n\nusage: qtldr [-C dir] [--config path] [--json] [--quiet] [-v] <command> [args]\n\ncommands:")
 	cmds := commands()
-	sort.Slice(cmds, func(i, j int) bool { return cmds[i].name < cmds[j].name })
+	slices.SortFunc(cmds, func(a, b command) int { return strings.Compare(a.name, b.name) })
 	for _, c := range cmds {
 		fmt.Fprintf(w, "  %-8s %s\n", c.name, c.summary)
 	}

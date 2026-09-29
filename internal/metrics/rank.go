@@ -80,8 +80,8 @@ func Rank(g model.Graph, metric string, n int, scope []model.ID) (Ranking, error
 	r := collect(g, def, scope)
 	r.Metric = metric
 	sortRanked(r.Items, def.low)
-	if n > 0 && len(r.Items) > n {
-		r.Items = r.Items[:n]
+	if n > 0 {
+		r.Items = r.Items[:min(n, len(r.Items))]
 	}
 	return r, nil
 }
