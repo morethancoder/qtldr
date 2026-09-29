@@ -25,7 +25,7 @@ import (
 )
 
 // ToolVersion is written into snapshots.
-const ToolVersion = "0.1.0"
+const ToolVersion = "0.2.0"
 
 // Options configure one run.
 type Options struct {
