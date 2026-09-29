@@ -32,7 +32,7 @@ allow = []                                 # function IDs to treat as pure even 
 window_months = 12
 
 [ui]
-theme = "gruvbox-dark"                     # id from the theme list or a custom theme in .qtldr/themes/
+theme = "github-dark"                     # id from the theme list or a custom theme in .qtldr/themes/
 theme_light = ""                           # optional: follow the OS light/dark setting with this pair
 theme_dark = ""
 port = 0                                   # 0 = pick a free port
