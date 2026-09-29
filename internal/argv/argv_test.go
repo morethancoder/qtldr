@@ -30,4 +30,8 @@ func TestFill(t *testing.T) {
 	if strings.Join(got, "|") != "nvim|+29|/a b/tier.go|/a b/tier.go:29" {
 		t.Fatalf("got %q", got)
 	}
+	// no variables: arguments are copied as they are
+	if got := Fill([]string{"code", "{file}"}, nil); strings.Join(got, "|") != "code|{file}" {
+		t.Errorf("no vars: %q", got)
+	}
 }

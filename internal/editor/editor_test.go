@@ -1,7 +1,9 @@
 package editor
 
 import (
+	"context"
 	"errors"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -36,6 +38,30 @@ func TestCommand(t *testing.T) {
 	got, _ := Command(config.Editor{Preset: "zed"}, Target{File: "/a.go"})
 	if got[1] != "/a.go:1:1" {
 		t.Errorf("line and column default to 1: %v", got)
+	}
+	got, _ = Command(config.Editor{Preset: "zed"}, Target{File: "/a.go", Line: -3, Col: 0})
+	if got[1] != "/a.go:1:1" {
+		t.Errorf("line and column below 1 become 1: %v", got)
+	}
+}
+
+func TestOpen(t *testing.T) {
+	root := t.TempDir()
+	ok := config.Editor{Preset: "custom", Command: "true {file}"}
+	args, err := Open(context.Background(), root, ok, Target{File: "a/x.go"})
+	if err != nil || strings.Join(args, "|") != "true|"+filepath.Join(root, "a", "x.go") {
+		t.Errorf("relative file joins root: %q %v", args, err)
+	}
+	if args, _ := Open(context.Background(), root, ok, Target{File: "/abs/x.go"}); args[1] != "/abs/x.go" {
+		t.Errorf("absolute file kept: %q", args)
+	}
+	fail := config.Editor{Preset: "custom", Command: "false {file}"}
+	if _, err := Open(context.Background(), root, fail, Target{File: "/abs/x.go"}); err == nil ||
+		!strings.HasPrefix(err.Error(), "`false /abs/x.go` failed: ") || !strings.HasSuffix(err.Error(), "check [editor] in .qtldr.toml") {
+		t.Errorf("failure names the command: %v", err)
+	}
+	if _, err := Open(context.Background(), root, config.Editor{Preset: "emacs"}, Target{File: "x.go"}); err == nil {
+		t.Error("unknown preset must fail")
 	}
 }
 

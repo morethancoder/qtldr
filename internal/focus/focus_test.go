@@ -1,6 +1,7 @@
 package focus
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -51,6 +52,28 @@ func TestPrompt(t *testing.T) {
 	bare := model.Detail{Node: model.Node{ID: "m/p.f", Kind: model.KindFunc}}
 	if got := Prompt(bare, th, nil, ""); !strings.Contains(got, "CRAP not measured, CC —, cognitive —, coverage not measured, mutation not measured") {
 		t.Errorf("nothing measured: %s", got)
+	}
+}
+
+func TestAgentPing(t *testing.T) {
+	root := t.TempDir()
+	if _, err := ReadAgentPing(root); err == nil {
+		t.Error("no ping yet: want error")
+	}
+	at := time.Date(2026, 9, 29, 12, 0, 0, 0, time.UTC)
+	if err := WriteAgentPing(root, "claude-code", at); err != nil {
+		t.Fatal(err)
+	}
+	if p, err := ReadAgentPing(root); err != nil || p.Client != "claude-code" || !p.At.Equal(at) {
+		t.Errorf("ping: %+v %v", p, err)
+	}
+}
+
+func TestSendTmuxWithoutTmux(t *testing.T) {
+	t.Setenv("PATH", t.TempDir()) // no tmux here
+	err := SendTmux(context.Background(), "agent:1", "fix it")
+	if err == nil || !strings.HasPrefix(err.Error(), "tmux send-keys -t agent:1 failed: ") || !strings.HasSuffix(err.Error(), "check [agent].tmux_target") {
+		t.Errorf("error: %v", err)
 	}
 }
 

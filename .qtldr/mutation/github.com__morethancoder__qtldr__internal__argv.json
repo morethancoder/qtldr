@@ -3,16 +3,16 @@
   "package": "github.com/morethancoder/qtldr/internal/argv",
   "engine": "gremlins",
   "engine_version": "v0.6.0",
-  "ran_at": "2026-09-29T00:15:14Z",
+  "ran_at": "2026-09-29T12:28:53Z",
   "functions": {
     "github.com/morethancoder/qtldr/internal/argv.Fill": {
       "body_hash": "sha256:19e2a2384ec61135f7a9c52a82d48580aeff0705f01de1967f6e7cbc6b89bc66",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:15:14Z",
+      "ran_at": "2026-09-29T12:28:53Z",
       "counts": {
-        "killed": 2,
-        "survived": 1,
+        "killed": 3,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -21,7 +21,7 @@
           "line_offset": 1,
           "col": 30,
           "type": "ARITHMETIC_BASE",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "* → /"
         },
         {
@@ -44,7 +44,7 @@
       "body_hash": "sha256:8226143d5d948cd3b36a17748b63f263bf5d1f83e3129e5f8f58f68c1b4806bc",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:15:14Z",
+      "ran_at": "2026-09-29T12:28:53Z",
       "counts": {
         "killed": 2,
         "survived": 0,
@@ -72,7 +72,7 @@
       "body_hash": "sha256:1b22cac00fb6dbff97117bbfd6aff40457087fda2b5f52c0b889a2f1622ea464",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:15:14Z",
+      "ran_at": "2026-09-29T12:28:53Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -121,7 +121,7 @@
       "body_hash": "sha256:5b3da26cd241dba7b1278cce338edba622a5cbda64cbce773e055c457b1b67f0",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:15:14Z",
+      "ran_at": "2026-09-29T12:28:53Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -142,7 +142,7 @@
       "body_hash": "sha256:4ba182c1287a2b476721efcc9f09f9b9f55eaa28473a15a762d17ffb206bcde1",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T00:15:14Z",
+      "ran_at": "2026-09-29T12:28:53Z",
       "counts": {
         "killed": 0,
         "survived": 0,

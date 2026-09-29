@@ -68,10 +68,33 @@ func TestTouches(t *testing.T) {
 		{Range{40, 40, true}, 20, 48, true},
 		{Range{48, 48, true}, 20, 48, false}, // deleted just after the closing brace
 		{Range{19, 19, true}, 20, 48, false}, // deleted just before the func line
+		{Range{20, 20, true}, 20, 48, true},  // deleted right after the func line
+		{Range{47, 47, true}, 20, 48, true},  // deleted right before the closing brace
 	}
 	for _, c := range cases {
 		if got := c.r.Touches(c.from, c.to); got != c.want {
 			t.Errorf("%+v touches [%d,%d] = %v, want %v", c.r, c.from, c.to, got, c.want)
+		}
+	}
+}
+
+func TestParseHunk(t *testing.T) {
+	cases := []struct {
+		line string
+		want Range
+		ok   bool
+	}{
+		{"@@ -1 +2", Range{2, 2, false}, true}, // shortest header
+		{"@@ -3,2 +3,4 @@ func F() {", Range{3, 6, false}, true},
+		{"@@ -3,2 +3,0 @@", Range{3, 3, true}, true},
+		{"@@ -1", Range{}, false},
+		{"@@ -1 2", Range{}, false},
+		{"@@ -1 +x", Range{}, false},
+		{"@@ -1 +1,x", Range{}, false},
+	}
+	for _, c := range cases {
+		if got, ok := parseHunk(c.line); got != c.want || ok != c.ok {
+			t.Errorf("parseHunk(%q) = %+v %v, want %+v %v", c.line, got, ok, c.want, c.ok)
 		}
 	}
 }

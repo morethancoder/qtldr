@@ -33,12 +33,7 @@ func Resolve(ids []ID, query string) (ID, error) {
 	if slices.Contains(ids, ID(query)) {
 		return ID(query), nil
 	}
-	var found []ID
-	for _, id := range ids {
-		if hasSegmentSuffix(string(id), query) {
-			found = append(found, id)
-		}
-	}
+	found := suffixMatches(ids, query)
 	switch len(found) {
 	case 0:
 		return "", &NotFoundError{Query: query}
@@ -48,6 +43,17 @@ func Resolve(ids []ID, query string) (ID, error) {
 		slices.Sort(found)
 		return "", &AmbiguousError{Query: query, Candidates: found}
 	}
+}
+
+// suffixMatches returns the ids that end with query at a segment boundary.
+func suffixMatches(ids []ID, query string) []ID {
+	var found []ID
+	for _, id := range ids {
+		if hasSegmentSuffix(string(id), query) {
+			found = append(found, id)
+		}
+	}
+	return found
 }
 
 func hasSegmentSuffix(id, suffix string) bool {

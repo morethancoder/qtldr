@@ -44,12 +44,7 @@ type Target struct {
 
 // Command builds the argv for the configured editor (pure).
 func Command(ed config.Editor, t Target) ([]string, error) {
-	if t.Line < 1 {
-		t.Line = 1
-	}
-	if t.Col < 1 {
-		t.Col = 1
-	}
+	t.Line, t.Col = max(t.Line, 1), max(t.Col, 1)
 	tmpl, err := template(ed)
 	if err != nil {
 		return nil, err

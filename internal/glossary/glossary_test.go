@@ -1,6 +1,7 @@
 package glossary
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -24,6 +25,15 @@ func TestLoadSubstitutesThresholds(t *testing.T) {
 				t.Errorf("%s: unsubstituted placeholder in %q", term.Key, s)
 			}
 		}
+	}
+}
+
+func TestSubstituteWithoutVars(t *testing.T) {
+	g := Load(config.Default())
+	crap, _ := g.Lookup("crap")
+	got, err := g.Substitute(nil).Lookup("crap")
+	if err != nil || !reflect.DeepEqual(got, crap) {
+		t.Errorf("no vars must leave terms as they are: %+v %v", got, err)
 	}
 }
 
