@@ -282,18 +282,15 @@ func typeEffect(t types.Type, depth int) string {
 }
 
 // innerTypes lists the types an unnamed composite type is built from.
+// Channels never get here: typeEffect reports them first.
 func innerTypes(t types.Type) []types.Type {
 	switch t := t.(type) {
-	case *types.Pointer:
-		return []types.Type{t.Elem()}
-	case *types.Slice:
-		return []types.Type{t.Elem()}
-	case *types.Array:
-		return []types.Type{t.Elem()}
 	case *types.Map:
 		return []types.Type{t.Key(), t.Elem()}
 	case *types.Signature:
 		return append(tupleTypes(t.Params()), tupleTypes(t.Results())...)
+	case interface{ Elem() types.Type }: // pointer, slice, array
+		return []types.Type{t.Elem()}
 	}
 	return nil
 }
