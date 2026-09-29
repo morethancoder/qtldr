@@ -35,6 +35,7 @@ make mutate     # mutation testing on the fixture (needs gremlins; results commi
 make serve      # the fixture's map at http://127.0.0.1:7777 (--watch)
 make smoke      # Playwright smoke test on the fixture (artifacts in .playwright/)
 make build      # bin/qtldr
+make release v=X.Y.Z  # after CI is green: tag, GitHub release, warm the Go proxy (bump ToolVersion first)
 make clean
 ```
 Direct CLI use: `go run ./cmd/qtldr -C testdata/ledger show <id>` (the fixture has its own go.mod, hence `-C`).

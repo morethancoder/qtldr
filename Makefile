@@ -1,6 +1,6 @@
 # qtldr — one-word targets; anything longer than a few lines lives in scripts/.
 .DEFAULT_GOAL := help
-.PHONY: help doctor setup build test lint fmt check web smoke serve mutate golden capture demo ci clean
+.PHONY: help doctor setup build test lint fmt check web smoke serve mutate golden capture demo ci release clean
 
 help: ## show this help
 	@awk 'BEGIN {FS = ":.*?## "; printf "\n\033[1mUsage:\033[0m make \033[36m<target>\033[0m\n\n\033[1mTargets:\033[0m\n"} \
@@ -51,6 +51,9 @@ demo: ## analyze the fixture with coverage; show applyTiered, worst, check
 
 ci: ## everything CI runs: lint, Go + web tests, dist freshness, qtldr check --all
 	@bash scripts/ci.sh
+
+release: ## tag and publish a release once CI is green (make release v=0.2.0)
+	@bash scripts/release.sh $(v)
 
 clean: ## remove bin/, snapshots and crap4go leftovers
 	@bash scripts/clean.sh
