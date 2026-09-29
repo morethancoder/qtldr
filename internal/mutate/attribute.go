@@ -58,8 +58,8 @@ func enclosing(fns []model.Node, line int) (model.ID, bool) {
 	return "", false
 }
 
-// Tally counts mutants by status and computes the score (killed / (killed +
-// survived), nil when that is 0). Mutants are sorted by line and column.
+// Tally counts mutants by status and computes the score (metrics.Score;
+// timed-out mutants count as caught). Mutants are sorted by line and column.
 func Tally(ms []model.Mutant) model.Mutation {
 	mu := model.Mutation{Mutants: ms}
 	sort.SliceStable(mu.Mutants, func(i, j int) bool { return before(mu.Mutants[i], mu.Mutants[j]) })
@@ -69,7 +69,7 @@ func Tally(ms []model.Mutant) model.Mutation {
 			*c++
 		}
 	}
-	mu.Score = metrics.Score(mu.Killed, mu.Survived)
+	mu.Score = metrics.Score(mu.Killed, mu.TimedOut, mu.Survived)
 	return mu
 }
 

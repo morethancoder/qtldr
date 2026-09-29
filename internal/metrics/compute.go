@@ -151,14 +151,17 @@ func (a *agg) metrics() model.Metrics {
 	}
 	if a.mutMeasured {
 		mu := a.mut
-		mu.Score = Score(mu.Killed, mu.Survived)
+		mu.Score = Score(mu.Killed, mu.TimedOut, mu.Survived)
 		m.Mutation = &mu
 	}
 	return m
 }
 
-// Score = killed / (killed + survived) × 100, nil when the denominator is 0.
-func Score(killed, survived int) *float64 { return percent(killed, killed+survived) }
+// Score = caught / (caught + survived) × 100, nil when the denominator is 0.
+// A mutant that made the tests time out was caught, like a killed one.
+func Score(killed, timedOut, survived int) *float64 {
+	return percent(killed+timedOut, killed+timedOut+survived)
+}
 
 func percent(part, total int) *float64 {
 	if total == 0 {

@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"math"
+	"slices"
 
 	"github.com/morethancoder/qtldr/internal/model"
 )
@@ -69,7 +70,7 @@ func FunctionGrades(m model.Metrics) model.Grades {
 	} else {
 		g.Coverage = 1
 	}
-	if m.Mutation != nil && m.Mutation.Sites() == 0 && len(m.Mutation.Mutants) == 0 {
+	if !MutationGraded(m) {
 		return g
 	}
 	var score *float64
@@ -80,6 +81,44 @@ func FunctionGrades(m model.Metrics) model.Grades {
 	g.Mutation = &mut
 	g.Combined = (g.CRAP + mut + 1) / 2 // round half up
 	return g
+}
+
+// notCovered is mutate.NotCovered (mutate imports metrics, not the reverse).
+const notCovered = "NOT COVERED"
+
+// MutationGraded reports whether m's mutation result counts for grading. A
+// function with no mutation sites, or whose only mutants are ones Gremlins
+// cannot test (see TestableNotCovered), is left out: combined = CRAP grade.
+// Missing mutation data is graded (as worst).
+func MutationGraded(m model.Metrics) bool {
+	mu := m.Mutation
+	return mu == nil || mu.Score != nil || TestableNotCovered(m) > 0
+}
+
+// TestableNotCovered counts the NOT COVERED mutants that a test could reach.
+// A mutant on a line that has no coverage block (a `case <expr>:` line: Go
+// starts the block after the colon) in a function that ran is never tested
+// by Gremlins, so it is not counted. Without line data every one counts.
+func TestableNotCovered(m model.Metrics) int {
+	mu := m.Mutation
+	if m.Coverage == nil || m.Coverage.Lines == nil || !reached(m.Coverage.Lines) {
+		return mu.NotCovered
+	}
+	n := 0
+	for _, mt := range mu.Mutants {
+		if mt.Status == notCovered && hasState(m.Coverage.Lines, mt.Line) {
+			n++
+		}
+	}
+	return n
+}
+
+// reached reports whether any line of the function ran.
+func reached(l *model.LineStates) bool { return len(l.Covered)+len(l.Partial) > 0 }
+
+// hasState reports whether a coverage block covers line.
+func hasState(l *model.LineStates, line int) bool {
+	return slices.Contains(l.Covered, line) || slices.Contains(l.Uncovered, line) || slices.Contains(l.Partial, line)
 }
 
 // Worst returns the lowest grade of a and b per metric; a nil mutation grade

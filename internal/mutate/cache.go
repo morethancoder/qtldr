@@ -144,7 +144,7 @@ func later(a, b *time.Time) *time.Time {
 func (e Entry) mutation(n model.Node) model.Mutation {
 	mu := model.Mutation{
 		Killed: e.Counts.Killed, Survived: e.Counts.Survived, NotCovered: e.Counts.NotCovered, TimedOut: e.Counts.TimedOut,
-		Score: metrics.Score(e.Counts.Killed, e.Counts.Survived), Stale: e.BodyHash != n.BodyHash,
+		Score: metrics.Score(e.Counts.Killed, e.Counts.TimedOut, e.Counts.Survived), Stale: e.BodyHash != n.BodyHash,
 	}
 	for _, m := range e.Mutants {
 		mu.Mutants = append(mu.Mutants, model.Mutant{Line: n.Line + m.LineOffset, Col: m.Col, Type: m.Type, Status: m.Status, Description: m.Description})

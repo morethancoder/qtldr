@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "package": "github.com/morethancoder/qtldr/web",
+  "engine": "gremlins",
+  "engine_version": "v0.6.0",
+  "ran_at": "2026-09-29T00:23:59Z",
+  "functions": {
+    "github.com/morethancoder/qtldr/web.Dist": {
+      "body_hash": "sha256:e7acc1a2e03f17954630935f8c45339ae091a8ca2375eef1f38fba0e17e04f01",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:23:59Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 1,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 2,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        }
+      ]
+    }
+  }
+}

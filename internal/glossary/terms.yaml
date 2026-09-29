@@ -83,13 +83,13 @@ terms:
   not_covered:
     title: "Not-covered mutants"
     short: "Mutation sites on lines no test runs, so they were never tried."
-    body: "These are coverage gaps, not a measure of test strength. They are not counted in the mutation score."
+    body: "These are coverage gaps, not a measure of test strength. They are not counted in the mutation score. Gremlins cannot test a change inside a `case <condition>:` line at all (Go's coverage has no block there); in a function that ran, those are left out of grading."
     good: "0 is the goal. Cover the line first; the next run tests these mutants."
 
   timed_out:
     title: "Timed-out mutants"
     short: "Changes that made the tests hang, usually an infinite loop."
-    body: "Shown for information. They are not counted as survived."
+    body: "The tests did not pass with the change, so it was caught: timed-out mutants count as killed in the mutation score."
     good: "No target."
 
   equivalent:

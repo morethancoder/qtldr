@@ -73,6 +73,44 @@ func deref(v *float64) any {
 	return *v
 }
 
+// caseLines is a mutation result whose mutants are all NOT COVERED, on lines.
+func caseLines(lines ...int) *model.Mutation {
+	mu := &model.Mutation{NotCovered: len(lines)}
+	for _, l := range lines {
+		mu.Mutants = append(mu.Mutants, model.Mutant{Line: l, Status: "NOT COVERED"})
+	}
+	return mu
+}
+
+type coverageLines struct{ *model.Coverage }
+
+// ran is coverage whose covered lines are lines.
+func ran(lines ...int) coverageLines {
+	return coverageLines{&model.Coverage{Percent: f(50), Lines: &model.LineStates{Covered: lines}}}
+}
+
+func (c coverageLines) uncovered(lines ...int) *model.Coverage {
+	c.Lines.Uncovered = lines
+	return c.Coverage
+}
+
+func TestScore(t *testing.T) {
+	cases := []struct {
+		killed, timedOut, survived int
+		want                       any
+	}{
+		{0, 0, 0, "nil"},
+		{3, 0, 1, 75.0},
+		{1, 2, 1, 75.0}, // a timeout is a caught mutant
+		{0, 2, 0, 100.0},
+	}
+	for _, c := range cases {
+		if got := deref(Score(c.killed, c.timedOut, c.survived)); got != c.want {
+			t.Errorf("Score(%d, %d, %d) = %v, want %v", c.killed, c.timedOut, c.survived, got, c.want)
+		}
+	}
+}
+
 func TestFunctionGrades(t *testing.T) {
 	sites := &model.Mutation{Killed: 9, Survived: 7, NotCovered: 3, Score: f(56.25)}
 	cases := []struct {
@@ -90,6 +128,14 @@ func TestFunctionGrades(t *testing.T) {
 		// zero sites: excluded, combined = CRAP grade
 		{"zero mutation sites", model.Metrics{CRAP: f(3), Mutation: &model.Mutation{}}, 10, nil},
 		{"nothing measured", model.Metrics{}, 1, model.Ptr(1)},
+		// timed-out mutants were caught: Score counts them as killed
+		{"only timed-out mutants", model.Metrics{CRAP: f(3), Mutation: &model.Mutation{TimedOut: 2, Score: Score(0, 2, 0)}}, 10, model.Ptr(10)},
+		// Gremlins cannot test a `case <expr>:` line (no coverage block);
+		// in a function that ran, such mutants are left out of grading
+		{"only untestable case-line mutants", model.Metrics{CRAP: f(3), Mutation: caseLines(75, 77), Coverage: ran(71, 72, 74, 76, 78).Coverage}, 10, nil},
+		{"not-covered mutant on an uncovered line counts", model.Metrics{CRAP: f(3), Mutation: caseLines(75, 90), Coverage: ran(71, 76).uncovered(90)}, 6, model.Ptr(1)},
+		{"case-line mutant in a function that never ran counts", model.Metrics{CRAP: f(3), Mutation: caseLines(75), Coverage: ran().uncovered(71, 76)}, 6, model.Ptr(1)},
+		{"no line data: not-covered counts", model.Metrics{CRAP: f(3), Mutation: caseLines(75), Coverage: &model.Coverage{Percent: f(80)}}, 6, model.Ptr(1)},
 	}
 	for _, c := range cases {
 		g := FunctionGrades(c.m)

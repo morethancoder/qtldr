@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "package": "github.com/morethancoder/qtldr/internal/store",
+  "engine": "gremlins",
+  "engine_version": "v0.6.0",
+  "ran_at": "2026-09-29T00:25:00Z",
+  "functions": {
+    "github.com/morethancoder/qtldr/internal/store.CachePath": {
+      "body_hash": "sha256:558da1c67c50c12b86551962182db89abddf7ad19e7634703772f64ccb20d898",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/morethancoder/qtldr/internal/store.ReadCoverageCache": {
+      "body_hash": "sha256:4aa52e982357a11b437b35754884d951406e19906df6af6700d462b642b14622",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 4,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 7,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 11,
+          "col": 42,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 11,
+          "col": 64,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 14,
+          "col": 24,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "== → !="
+        }
+      ]
+    },
+    "github.com/morethancoder/qtldr/internal/store.ReadSnapshot": {
+      "body_hash": "sha256:3782e31e08b166c66a0f4165d8704f2056ff9b034aa0407144fda47a4a6aa392",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 3,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 7,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 10,
+          "col": 39,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 13,
+          "col": 14,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/morethancoder/qtldr/internal/store.SnapshotPath": {
+      "body_hash": "sha256:0ada67237f907ded4b272105bab359919ef79c6d73419dc265269ab06ebefd12",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/morethancoder/qtldr/internal/store.WriteCoverageCache": {
+      "body_hash": "sha256:7bb761d642bf7a9e562d393ddc6721c1f985b363a6373c8a31ad742fdc7c1e84",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    },
+    "github.com/morethancoder/qtldr/internal/store.WriteFile": {
+      "body_hash": "sha256:9ac504fee1da41c5f00b53684883877ab43e8c5a0c87a61c38bb0b7767aa8de9",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 6,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 2,
+          "col": 41,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 5,
+          "col": 52,
+          "type": "ARITHMETIC_BASE",
+          "status": "KILLED",
+          "description": "+ → -"
+        },
+        {
+          "line_offset": 6,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 10,
+          "col": 33,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 14,
+          "col": 29,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        },
+        {
+          "line_offset": 17,
+          "col": 45,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/morethancoder/qtldr/internal/store.WriteJSON": {
+      "body_hash": "sha256:c0acb04168815322ea5a1d2bcf46e752da99fa81ddaa2d375c25d328b2b0bd2c",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 1,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 2,
+          "col": 9,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/morethancoder/qtldr/internal/store.WriteLog": {
+      "body_hash": "sha256:1683e5eb20e30850da97234ae512dbae87507de5a5d81008088d4ebbf622dc5b",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 4,
+        "timed_out": 0
+      },
+      "mutants": [
+        {
+          "line_offset": 1,
+          "col": 40,
+          "type": "ARITHMETIC_BASE",
+          "status": "NOT COVERED",
+          "description": "+ → -"
+        },
+        {
+          "line_offset": 1,
+          "col": 44,
+          "type": "ARITHMETIC_BASE",
+          "status": "NOT COVERED",
+          "description": "+ → -"
+        },
+        {
+          "line_offset": 1,
+          "col": 79,
+          "type": "ARITHMETIC_BASE",
+          "status": "NOT COVERED",
+          "description": "+ → -"
+        },
+        {
+          "line_offset": 2,
+          "col": 56,
+          "type": "CONDITIONALS_NEGATION",
+          "status": "NOT COVERED",
+          "description": "!= → =="
+        }
+      ]
+    },
+    "github.com/morethancoder/qtldr/internal/store.WriteSnapshot": {
+      "body_hash": "sha256:00206636f046e42ef3d5fe6c0c81b9dd2272858da729c1840af853554268e271",
+      "engine": "gremlins",
+      "engine_version": "v0.6.0",
+      "ran_at": "2026-09-29T00:25:00Z",
+      "counts": {
+        "killed": 0,
+        "survived": 0,
+        "not_covered": 0,
+        "timed_out": 0
+      },
+      "mutants": []
+    }
+  }
+}

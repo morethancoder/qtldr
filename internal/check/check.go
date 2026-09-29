@@ -13,6 +13,7 @@ import (
 	"github.com/morethancoder/qtldr/internal/coverage"
 	"github.com/morethancoder/qtldr/internal/gitx"
 	"github.com/morethancoder/qtldr/internal/lang/golang"
+	"github.com/morethancoder/qtldr/internal/metrics"
 	"github.com/morethancoder/qtldr/internal/model"
 )
 
@@ -266,9 +267,9 @@ func (e evaluator) mutation(r *Report) {
 	switch {
 	case mu == nil || mu.Stale:
 		e.missing(r, KindMutation, "mutation not run since last change (run: qtldr mutate --func "+e.name+")")
-	case mu.Sites() == 0:
+	case !metrics.MutationGraded(e.m):
 	case mu.Score == nil:
-		e.missing(r, KindMutation, fmt.Sprintf("no mutant could run: %d not covered by tests", mu.NotCovered))
+		e.missing(r, KindMutation, fmt.Sprintf("no mutant could run: %d not covered by tests", metrics.TestableNotCovered(e.m)))
 	case *mu.Score < e.th.MutationMin:
 		e.breach(r, KindMutation, *mu.Score, e.th.MutationMin, "each survivor is one missing assertion", survivors(e.n.File, mu.Mutants, 5)...)
 	}
