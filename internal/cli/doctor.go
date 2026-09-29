@@ -92,11 +92,16 @@ func (e *env) checkEditor(ed config.Editor) toolCheck {
 		c.Hint = fmt.Sprintf("%q is not on PATH; set [editor] preset or command in .qtldr.toml", bin)
 		return c
 	}
-	c.Found = true
-	if runtime.GOOS == "windows" && (ed.Preset == "vim-tmux" || ed.Preset == "nvim-remote") {
-		c.Hint = ed.Preset + " may not work on Windows"
-	}
+	c.Found, c.Hint = true, editorWarning(runtime.GOOS, ed.Preset)
 	return c
+}
+
+// editorWarning says when an editor preset may not work on goos.
+func editorWarning(goos, preset string) string {
+	if goos == "windows" && (preset == "vim-tmux" || preset == "nvim-remote") {
+		return preset + " may not work on Windows"
+	}
+	return ""
 }
 
 func printChecks(e *env, checks []toolCheck) {

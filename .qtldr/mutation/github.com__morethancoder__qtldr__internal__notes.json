@@ -3,17 +3,17 @@
   "package": "github.com/morethancoder/qtldr/internal/notes",
   "engine": "gremlins",
   "engine_version": "v0.6.0",
-  "ran_at": "2026-09-29T01:59:51Z",
+  "ran_at": "2026-09-29T12:25:21Z",
   "functions": {
     "github.com/morethancoder/qtldr/internal/notes.Add": {
       "body_hash": "sha256:574eb9ebab18e8ad413220cea9ff3afc69b5d8f9c76ab794e706a78e23d33bb5",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
-        "killed": 0,
+        "killed": 2,
         "survived": 0,
-        "not_covered": 2,
+        "not_covered": 0,
         "timed_out": 0
       },
       "mutants": [
@@ -21,14 +21,14 @@
           "line_offset": 2,
           "col": 9,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "!= → =="
         },
         {
           "line_offset": 7,
           "col": 9,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "!= → =="
         }
       ]
@@ -37,7 +37,7 @@
       "body_hash": "sha256:449996bd6ccd08a9c61692a9c9d08f985ca7d440690a421fe62ab9b3b1a99065",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -58,7 +58,7 @@
       "body_hash": "sha256:f897ca1e5708be397e801f9772f689a46de8167d8ef46c1f9f5feb536b363f5b",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -79,11 +79,11 @@
       "body_hash": "sha256:d94346cc26797dd78d0e9e0ce5a0809f8382567fcb59d0c686331070d67c6451",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
-        "killed": 0,
+        "killed": 8,
         "survived": 0,
-        "not_covered": 8,
+        "not_covered": 0,
         "timed_out": 0
       },
       "mutants": [
@@ -91,56 +91,56 @@
           "line_offset": 1,
           "col": 12,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "!= → =="
         },
         {
           "line_offset": 1,
           "col": 40,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "\u003c → \u003c="
         },
         {
           "line_offset": 1,
           "col": 40,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "\u003c → \u003e="
         },
         {
           "line_offset": 5,
           "col": 9,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "!= → =="
         },
         {
           "line_offset": 9,
           "col": 15,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "\u003e → \u003e="
         },
         {
           "line_offset": 9,
           "col": 15,
           "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "\u003e → \u003c="
         },
         {
           "line_offset": 12,
           "col": 21,
           "type": "INVERT_NEGATIVES",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
           "line_offset": 12,
           "col": 21,
           "type": "ARITHMETIC_BASE",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "- → +"
         }
       ]
@@ -149,7 +149,7 @@
       "body_hash": "sha256:0ddee8ccbc4461bb72be09e963223f9b09b15d93b60267d4555b3f7795cbc61e",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 2,
         "survived": 0,
@@ -177,10 +177,10 @@
       "body_hash": "sha256:2df5e1d7f2aeac6595886f1056e7222b7b97eb9b3132196bfeecf00490ea69da",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
-        "killed": 6,
-        "survived": 5,
+        "killed": 11,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -216,22 +216,22 @@
         {
           "line_offset": 9,
           "col": 9,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003c → \u003c="
-        },
-        {
-          "line_offset": 9,
-          "col": 9,
           "type": "CONDITIONALS_NEGATION",
           "status": "KILLED",
           "description": "\u003c → \u003e="
         },
         {
           "line_offset": 9,
+          "col": 9,
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "KILLED",
+          "description": "\u003c → \u003c="
+        },
+        {
+          "line_offset": 9,
           "col": 20,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "\u003e= → \u003e"
         },
         {
@@ -245,21 +245,21 @@
           "line_offset": 10,
           "col": 100,
           "type": "ARITHMETIC_BASE",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "+ → -"
         },
         {
           "line_offset": 10,
           "col": 111,
           "type": "INVERT_NEGATIVES",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
           "line_offset": 10,
           "col": 111,
           "type": "ARITHMETIC_BASE",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         }
       ]
@@ -268,7 +268,7 @@
       "body_hash": "sha256:4c4cd51d09fe4eebb097413a3d078e192be0eb9e668039661fe991ad8a444d88",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 1,
         "survived": 0,
@@ -289,7 +289,7 @@
       "body_hash": "sha256:49559dccce28eaa08fb3e31eeda265e305c4c9fe2f5efc09dfb90ea3a175050a",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -302,7 +302,7 @@
       "body_hash": "sha256:ed47c3ddcf482a51720294a82a6735dba1416fa6d7784d10ff5fee07be422d3b",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 9,
         "survived": 2,
@@ -320,16 +320,16 @@
         {
           "line_offset": 6,
           "col": 9,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
-          "description": "\u003c → \u003c="
+          "type": "CONDITIONALS_NEGATION",
+          "status": "KILLED",
+          "description": "\u003c → \u003e="
         },
         {
           "line_offset": 6,
           "col": 9,
-          "type": "CONDITIONALS_NEGATION",
-          "status": "KILLED",
-          "description": "\u003c → \u003e="
+          "type": "CONDITIONALS_BOUNDARY",
+          "status": "LIVED",
+          "description": "\u003c → \u003c="
         },
         {
           "line_offset": 6,
@@ -393,7 +393,7 @@
       "body_hash": "sha256:76ab8de47c2a0ead43f3e9396e922bf43fc4ed317bd16b5db879854f7e65afae",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -406,7 +406,7 @@
       "body_hash": "sha256:93a2479d860aae22ea9b04a1e1d4b1389043e618e40fd2377ac01f8bb89ed6c6",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 0,
         "survived": 0,
@@ -419,7 +419,7 @@
       "body_hash": "sha256:f065c75e24f0d0fb062e3ec89f6deec0fdb9bd78541bce2e4209ce7afff6efcb",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 4,
         "survived": 0,
@@ -458,43 +458,29 @@
       ]
     },
     "github.com/morethancoder/qtldr/internal/notes.abs": {
-      "body_hash": "sha256:a402cc54d438252cd41570e8a756dd54e40418815d3eef0f07828812ad791da4",
+      "body_hash": "sha256:619a6649f0d6a4725ab6d932806f0cfbaff0a571fc91948424945b74b1293b06",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
-        "killed": 0,
+        "killed": 2,
         "survived": 0,
-        "not_covered": 4,
+        "not_covered": 0,
         "timed_out": 0
       },
       "mutants": [
         {
-          "line_offset": 1,
-          "col": 7,
-          "type": "CONDITIONALS_BOUNDARY",
-          "status": "NOT COVERED",
-          "description": "\u003c → \u003c="
-        },
-        {
-          "line_offset": 1,
-          "col": 7,
-          "type": "CONDITIONALS_NEGATION",
-          "status": "NOT COVERED",
-          "description": "\u003c → \u003e="
-        },
-        {
-          "line_offset": 2,
-          "col": 10,
+          "line_offset": 0,
+          "col": 37,
           "type": "INVERT_NEGATIVES",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
-          "line_offset": 2,
-          "col": 10,
+          "line_offset": 0,
+          "col": 37,
           "type": "ARITHMETIC_BASE",
-          "status": "NOT COVERED",
+          "status": "KILLED",
           "description": "- → +"
         }
       ]
@@ -503,10 +489,10 @@
       "body_hash": "sha256:febfa12098501eef7101a540e2473b48e08592957ca7b7ec491c8e139b492d2d",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
-        "killed": 3,
-        "survived": 8,
+        "killed": 11,
+        "survived": 0,
         "not_covered": 0,
         "timed_out": 0
       },
@@ -536,56 +522,56 @@
           "line_offset": 3,
           "col": 44,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "\u003c → \u003c="
         },
         {
           "line_offset": 3,
           "col": 44,
           "type": "CONDITIONALS_NEGATION",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "\u003c → \u003e="
         },
         {
           "line_offset": 3,
           "col": 56,
           "type": "INVERT_NEGATIVES",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
           "line_offset": 3,
           "col": 56,
           "type": "ARITHMETIC_BASE",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
           "line_offset": 3,
           "col": 62,
           "type": "CONDITIONALS_BOUNDARY",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "\u003c → \u003c="
         },
         {
           "line_offset": 3,
           "col": 62,
           "type": "CONDITIONALS_NEGATION",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "\u003c → \u003e="
         },
         {
           "line_offset": 3,
           "col": 72,
           "type": "INVERT_NEGATIVES",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         },
         {
           "line_offset": 3,
           "col": 72,
           "type": "ARITHMETIC_BASE",
-          "status": "LIVED",
+          "status": "KILLED",
           "description": "- → +"
         }
       ]
@@ -594,7 +580,7 @@
       "body_hash": "sha256:5fe131792124b87f8983039754cd777a201f6e43810de9014eaf7b88d5908558",
       "engine": "gremlins",
       "engine_version": "v0.6.0",
-      "ran_at": "2026-09-29T01:59:51Z",
+      "ran_at": "2026-09-29T12:25:21Z",
       "counts": {
         "killed": 9,
         "survived": 0,

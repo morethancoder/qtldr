@@ -89,12 +89,7 @@ func nearest(lines []string, text string, off int) int {
 	return best
 }
 
-func abs(v int) int {
-	if v < 0 {
-		return -v
-	}
-	return v
-}
+func abs(v int) int { return max(v, -v) }
 
 // ForTarget returns the unresolved notes of id.
 func ForTarget(all []Note, id model.ID) []Note {
