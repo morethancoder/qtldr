@@ -132,16 +132,23 @@ func ParseDiff(diff string) map[string][]Range {
 	hunks := map[string][]Range{}
 	file := ""
 	for _, line := range strings.Split(diff, "\n") {
-		switch {
-		case strings.HasPrefix(line, "+++ "):
-			file = diffPath(strings.TrimPrefix(line, "+++ "))
-		case strings.HasPrefix(line, "@@ ") && file != "":
-			if r, ok := parseHunk(line); ok {
-				hunks[file] = append(hunks[file], r)
-			}
-		}
+		file = diffLine(hunks, file, line)
 	}
 	return hunks
+}
+
+// diffLine reads one diff line: a "+++" header names the file that the
+// following hunks change. It returns the current file.
+func diffLine(hunks map[string][]Range, file, line string) string {
+	switch {
+	case strings.HasPrefix(line, "+++ "):
+		return diffPath(strings.TrimPrefix(line, "+++ "))
+	case strings.HasPrefix(line, "@@ ") && file != "":
+		if r, ok := parseHunk(line); ok {
+			hunks[file] = append(hunks[file], r)
+		}
+	}
+	return file
 }
 
 func diffPath(p string) string {

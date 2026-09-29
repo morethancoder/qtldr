@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"slices"
 	"testing"
 )
 
@@ -49,6 +50,50 @@ func TestResolve(t *testing.T) {
 		case err != nil || got != c.want:
 			t.Errorf("%q: got %q %v, want %q", c.query, got, err, c.want)
 		}
+	}
+}
+
+func TestResolveErrorMessages(t *testing.T) {
+	_, err := Resolve([]ID{"a/x.Close", "b/y.Close"}, "Close")
+	want := "\"Close\" matches 2 nodes; use a longer ID:\n  a/x.Close\n  b/y.Close"
+	if err == nil || err.Error() != want {
+		t.Errorf("ambiguous: %q, want %q", err, want)
+	}
+}
+
+func TestNodeAndDetail(t *testing.T) {
+	g := Graph{
+		Nodes: []Node{
+			{ID: "m/p", Kind: KindPackage},
+			{ID: "m/p.T", Kind: KindType, Parent: "m/p"},
+			{ID: "m/p.b", Kind: KindFunc, Parent: "m/p"},
+			{ID: "m/p.a", Kind: KindFunc, Parent: "m/p"},
+			{ID: "m/q", Kind: KindPackage},
+			{ID: "m/q.c", Kind: KindFunc, Parent: "m/q"},
+		},
+		Metrics: map[ID]Metrics{"m/p": {CC: Ptr(3)}},
+	}
+	if n, ok := g.Node("m/p"); !ok || n.ID != "m/p" {
+		t.Errorf("first node: %+v %v", n, ok)
+	}
+	if _, ok := g.Node("m/none"); ok {
+		t.Error("missing node found")
+	}
+	d, ok := g.Detail("m/p")
+	if !ok || d.Metrics == nil || *d.Metrics.CC != 3 || !slices.Equal(d.Children, []ID{"m/p.T", "m/p.a", "m/p.b"}) {
+		t.Errorf("detail: %v %+v", ok, d)
+	}
+	if d, ok := g.Detail("m/q.c"); !ok || d.Metrics != nil || d.Children != nil {
+		t.Errorf("leaf detail: %v %+v", ok, d)
+	}
+	if _, ok := g.Detail("m/none"); ok {
+		t.Error("missing detail found")
+	}
+}
+
+func TestMutationSites(t *testing.T) {
+	if got := (Mutation{Killed: 1, Survived: 2, NotCovered: 4, TimedOut: 8}).Sites(); got != 15 {
+		t.Errorf("sites = %d, want 15", got)
 	}
 }
 

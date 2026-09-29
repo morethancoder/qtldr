@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -66,6 +67,36 @@ func TestParse(t *testing.T) {
 			t.Errorf("%s: warnings %v, want %q", c.name, warns, c.wantWarn)
 		case c.check != nil && !c.check(cfg):
 			t.Errorf("%s: check failed on %+v", c.name, cfg)
+		}
+	}
+}
+
+func TestLoad(t *testing.T) {
+	dir := t.TempDir()
+	if _, _, err := Load(dir); err == nil || !strings.HasPrefix(err.Error(), "read "+dir) {
+		t.Errorf("a directory is not a config file: %v", err)
+	}
+	p := filepath.Join(dir, FileName)
+	if err := os.WriteFile(p, []byte("[ui]\ntheme = \"nord\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	c, warns, err := Load(p)
+	if err != nil || len(warns) != 0 || c.UI.Theme != "nord" || c.Thresholds.CrapMax != Default().Thresholds.CrapMax {
+		t.Errorf("load: %+v %q %v", c.UI, warns, err)
+	}
+}
+
+func TestTrailingComment(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{`theme = "a" # c`, " # c"},
+		{`theme = "a#b"`, ""},
+		{"# only a comment", "# only a comment"},
+		{"  # indented comment", "  # indented comment"},
+		{`x = "a"` + "\t\t# tabs", "\t\t# tabs"},
+	}
+	for _, c := range cases {
+		if got := trailingComment(c.in); got != c.want {
+			t.Errorf("trailingComment(%q) = %q, want %q", c.in, got, c.want)
 		}
 	}
 }

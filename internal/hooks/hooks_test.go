@@ -104,7 +104,51 @@ func TestMergeMCPConfig(t *testing.T) {
 	if _, changed, err := InstallMCP(dir); err != nil || !changed {
 		t.Fatalf("install: %v %v", changed, err)
 	}
-	if _, changed, _ := InstallMCP(dir); changed {
-		t.Error("second install must not change the file")
+	if _, changed, err := InstallMCP(dir); changed || err != nil {
+		t.Errorf("second install must not change the file: %v %v", changed, err)
+	}
+	other := t.TempDir()
+	if err := os.WriteFile(filepath.Join(other, ".mcp.json"), []byte(`{"mcpServers": {"other": {"command": "x"}}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, changed, err := InstallMCP(other); err != nil || !changed {
+		t.Errorf("install over an existing .mcp.json: %v %v", changed, err)
+	}
+	if b, _ := os.ReadFile(filepath.Join(other, ".mcp.json")); !strings.Contains(string(b), `"other"`) || !strings.Contains(string(b), `"qtldr"`) {
+		t.Errorf("merged file:\n%s", b)
+	}
+}
+
+func TestInstallClaude(t *testing.T) {
+	dir := t.TempDir()
+	path, changed, err := InstallClaude(dir)
+	if err != nil || !changed || path != filepath.Join(dir, ".claude", "settings.json") {
+		t.Fatalf("install: %q %v %v", path, changed, err)
+	}
+	if b, err := os.ReadFile(path); err != nil || !strings.Contains(string(b), ClaudeCommand) {
+		t.Errorf("settings: %s %v", b, err)
+	}
+	if _, changed, err := InstallClaude(dir); changed || err != nil {
+		t.Errorf("second install must not change the file: %v %v", changed, err)
+	}
+
+	bad := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(bad, ".claude"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	badPath := filepath.Join(bad, ".claude", "settings.json")
+	if err := os.WriteFile(badPath, []byte("not json"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := InstallClaude(bad); err == nil || !strings.HasPrefix(err.Error(), badPath+": ") {
+		t.Errorf("invalid settings: %v", err)
+	}
+
+	unreadable := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(unreadable, ".claude", "settings.json"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := InstallClaude(unreadable); err == nil || !strings.HasPrefix(err.Error(), "read ") {
+		t.Errorf("settings.json is a directory: %v", err)
 	}
 }

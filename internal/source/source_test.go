@@ -64,6 +64,32 @@ func TestAnnotate(t *testing.T) {
 	}
 }
 
+func TestCondition(t *testing.T) {
+	lines := func(texts ...string) []Line {
+		out := make([]Line, len(texts))
+		for i, s := range texts {
+			out[i] = Line{N: i + 1, Text: s}
+		}
+		return out
+	}
+	cases := []struct {
+		lines []Line
+		i     int
+		want  string
+	}{
+		{lines("\tif x > 0 {", "\t\treturn x"), 1, "if x > 0"},   // header on the first line
+		{lines("if ok {", "a()", "b()", "c()"), 3, "if ok"},      // exactly 3 lines up
+		{lines("if ok {", "a()", "b()", "c()", "d()"), 4, "d()"}, // more than 3 lines up: the line itself
+		{lines("\t} else {", "\t\treturn 0"), 1, "else"},         // closing brace is dropped
+		{lines("\tcase n > 5:", "\t\treturn 1"), 1, "case n > 5:"},
+	}
+	for _, c := range cases {
+		if got := condition(c.lines, c.i); got != c.want {
+			t.Errorf("condition(%d) = %q, want %q", c.i, got, c.want)
+		}
+	}
+}
+
 func TestSurvivorWhyPrefersNote(t *testing.T) {
 	n := model.Node{Line: 1}
 	m := model.Metrics{Mutation: &model.Mutation{Mutants: []model.Mutant{{Line: 1, Status: "LIVED", Type: "NEW_TYPE", Description: "a → b"}}}}
